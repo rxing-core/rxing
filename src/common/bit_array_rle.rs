@@ -37,6 +37,33 @@ impl From<&BitArray> for BitArrayRLE {
     }
 }
 
+pub struct RlePattern<const N: usize> {
+    pub counts: [usize; N],
+    pub size: usize,
+}
+
+impl<const N: usize> From<[usize; N]> for RlePattern<N> {
+    fn from(counts: [usize; N]) -> Self {
+        RlePattern { counts, size: N }
+    }
+}
+
+impl<const N: usize> RlePattern<N> {
+    pub fn calculate_variance(&self, array: &BitArrayRLE, start: usize) -> f64 {
+        let mut variance = 0.0;
+        let mut array_index = start;
+        for &count in &self.counts {
+            if array_index >= array.counts.len() {
+                break;
+            }
+            let diff = count as f64 - array.counts[array_index] as f64;
+            variance += diff * diff;
+            array_index += 1;
+        }
+        variance
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
