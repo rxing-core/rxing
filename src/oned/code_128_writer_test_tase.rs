@@ -35,9 +35,9 @@ const LF: &str = "10000110010";
 use once_cell::sync::Lazy;
 
 use crate::{
-    BarcodeFormat, DecodeHints, EncodeHintValue, EncodeHints, Writer,
+    BarcodeFormat, DecodeHints, EncodeHintValue, EncodeHints, Exceptions, Writer,
     common::{BitMatrix, Result, bit_matrix_test_case},
-    oned::{Code128Reader, OneDReader},
+    oned::{Code128Reader, OneDReader, OneDimensionalCodeWriter},
 };
 
 use super::Code128Writer;
@@ -142,11 +142,49 @@ fn testRoundtrip() {
 }
 
 #[test]
-fn testLongCompact() {
-    //test longest possible input
-    let toEncode =
-        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-    encode(toEncode, true, toEncode).expect("encode");
+fn testLongContents() {
+    for length in [80, 81, 82, 256] {
+        for character in ["A", "a", "1"] {
+            let toEncode = character.repeat(length);
+            for compact in [false, true] {
+                encode(&toEncode, compact, &toEncode).expect("encode");
+            }
+        }
+    }
+}
+
+#[test]
+fn testLongContentsWithForcedCodeSet() {
+    for (codeSet, content, startCode) in [
+        ("A", "A\n", START_CODE_A),
+        ("B", "ab", START_CODE_B),
+        ("C", "12", START_CODE_C),
+    ] {
+        let hints = EncodeHints::default().with(EncodeHintValue::ForceCodeSet(codeSet.to_string()));
+        for length in [80, 82, 256] {
+            let toEncode = content.repeat(length / 2);
+            let result = WRITER
+                .encode_with_hints(&toEncode, &BarcodeFormat::CODE_128, 0, 0, &hints)
+                .expect("encode");
+            let decoded = Code128Reader
+                .decode_row(0, &result.getRow(0), &DecodeHints::default())
+                .expect("decode");
+            assert_eq!(toEncode, decoded.getText());
+            let actual = bit_matrix_test_case::matrix_to_string(&result);
+            assert!(actual.starts_with(&format!("{QUIET_SPACE}{startCode}")));
+        }
+    }
+}
+
+#[test]
+fn testEmptyContents() {
+    for compact in [false, true] {
+        let hints = EncodeHints::default().with(EncodeHintValue::Code128Compact(compact));
+        assert!(matches!(
+            WRITER.encode_oned_with_hints("", &hints),
+            Err(Exceptions::IllegalArgumentException(_))
+        ));
+    }
 }
 
 #[test]

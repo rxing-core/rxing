@@ -94,12 +94,8 @@ impl OneDimensionalCodeWriter for Code128Writer {
 }
 
 fn check(contents: &str, hints: &crate::EncodeHints) -> Result<i32> {
-    let length = contents.chars().count();
-    // Check length
-    if !(1..=80).contains(&length) {
-        return Err(Exceptions::illegal_argument_with(format!(
-            "Contents length should be between 1 and 80 characters, but got {length}"
-        )));
+    if contents.is_empty() {
+        return Err(Exceptions::illegal_argument_with("Found empty contents"));
     }
 
     // Check for forced code set hint.
