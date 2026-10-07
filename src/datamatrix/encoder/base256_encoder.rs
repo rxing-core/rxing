@@ -53,7 +53,7 @@ impl Encoder for Base256Encoder {
         let dataCount = buffer.chars().count() - 1;
         let lengthFieldSize = 1;
         let currentSize = context.getCodewordCount() + dataCount + lengthFieldSize;
-        context.updateSymbolInfoWithLength(currentSize);
+        context.updateSymbolInfoWithLength(currentSize)?;
         let mustPad = (context
             .getSymbolInfo()
             .ok_or(Exceptions::ILLEGAL_STATE)?

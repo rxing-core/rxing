@@ -842,3 +842,30 @@ fn issue_62_rmqr_r7() {
     );
     assert_eq!(result.getText(), "This is ");
 }
+
+/// <https://github.com/rxing-core/rxing/issues/106>
+///
+/// DataMatrix input that does not fit the largest (144x144) symbol must be
+/// rejected with an error instead of panicking.
+#[cfg(all(feature = "encoders", feature = "datamatrix"))]
+#[test]
+fn issue_106_datamatrix_oversize() {
+    use rxing::{BarcodeFormat, Exceptions, MultiFormatWriter};
+
+    for (fits, too_big) in [
+        ("x".repeat(2335), "x".repeat(2336)),
+        ("9".repeat(3116), "9".repeat(3117)),
+    ] {
+        let matrix = MultiFormatWriter
+            .encode(&fits, &BarcodeFormat::DATA_MATRIX, 0, 0)
+            .expect("largest-symbol input must encode");
+        assert_eq!((matrix.getWidth(), matrix.getHeight()), (144, 144));
+
+        let result = MultiFormatWriter.encode(&too_big, &BarcodeFormat::DATA_MATRIX, 0, 0);
+        assert!(
+            matches!(result, Err(Exceptions::IllegalArgumentException(_))),
+            "oversize input must be rejected: {:?}",
+            result.map(|m| (m.getWidth(), m.getHeight()))
+        );
+    }
+}

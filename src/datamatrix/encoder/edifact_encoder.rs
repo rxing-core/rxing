@@ -75,7 +75,7 @@ impl EdifactEncoder {
             }
             if count == 1 {
                 //Only an unlatch at the end
-                context.updateSymbolInfo();
+                context.updateSymbolInfo()?;
                 let mut available = context
                     .getSymbolInfo()
                     .ok_or(Exceptions::ILLEGAL_STATE)?
@@ -84,7 +84,7 @@ impl EdifactEncoder {
                 let remaining = context.getRemainingCharacters();
                 // The following two lines are a hack inspired by the 'fix' from https://sourceforge.net/p/barcode4j/svn/221/
                 if remaining > available {
-                    context.updateSymbolInfoWithLength(context.getCodewordCount() + 1);
+                    context.updateSymbolInfoWithLength(context.getCodewordCount() + 1)?;
                     available = context
                         .getSymbolInfo()
                         .ok_or(Exceptions::ILLEGAL_STATE)?
@@ -105,7 +105,7 @@ impl EdifactEncoder {
             let mut restInAscii = endOfSymbolReached && restChars <= 2;
 
             if restChars <= 2 {
-                context.updateSymbolInfoWithLength(context.getCodewordCount() + restChars);
+                context.updateSymbolInfoWithLength(context.getCodewordCount() + restChars)?;
                 let available = context
                     .getSymbolInfo()
                     .ok_or(Exceptions::ILLEGAL_STATE)?
@@ -115,7 +115,7 @@ impl EdifactEncoder {
                     restInAscii = false;
                     context.updateSymbolInfoWithLength(
                         context.getCodewordCount() + encoded.chars().count(),
-                    );
+                    )?;
                     //available = context.symbolInfo.dataCapacity - context.getCodewordCount();
                 }
             }

@@ -64,7 +64,7 @@ impl C40Encoder {
             let unwritten = (buffer.chars().count() / 3) * 2;
 
             let curCodewordCount = context.getCodewordCount() + unwritten;
-            context.updateSymbolInfoWithLength(curCodewordCount);
+            context.updateSymbolInfoWithLength(curCodewordCount)?;
             let available = context
                 .getSymbolInfo()
                 .ok_or(Exceptions::ILLEGAL_STATE)?
@@ -139,7 +139,7 @@ impl C40Encoder {
             let unwritten = (buffer.chars().count() / 3) * 2;
 
             let curCodewordCount = context.getCodewordCount() + unwritten + 1; // +1 for the latch to C40
-            context.updateSymbolInfoWithLength(curCodewordCount);
+            context.updateSymbolInfoWithLength(curCodewordCount)?;
             let available = context
                 .getSymbolInfo()
                 .ok_or(Exceptions::ILLEGAL_STATE)?
@@ -201,7 +201,7 @@ impl C40Encoder {
         let rest = buffer.chars().count() % 3;
 
         let curCodewordCount = context.getCodewordCount() + unwritten;
-        context.updateSymbolInfoWithLength(curCodewordCount);
+        context.updateSymbolInfoWithLength(curCodewordCount)?;
         let available = context
             .getSymbolInfo()
             .ok_or(Exceptions::ILLEGAL_STATE)?

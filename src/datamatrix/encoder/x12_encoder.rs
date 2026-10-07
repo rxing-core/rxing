@@ -79,7 +79,7 @@ impl X12Encoder {
     }
 
     fn handleEOD(context: &mut EncoderContext, buffer: &mut str) -> Result<()> {
-        context.updateSymbolInfo();
+        context.updateSymbolInfo()?;
         let available = context
             .getSymbolInfo()
             .ok_or(Exceptions::ILLEGAL_STATE)?
