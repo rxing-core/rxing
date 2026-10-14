@@ -207,6 +207,29 @@ mod CodaBarWriterTestCase {
         assert_eq!(encode("T123456789-$T"), encode("A123456789-$A"));
     }
 
+    #[cfg(feature = "decoders")]
+    #[test]
+    fn testDecodeWithStartEnd() {
+        use crate::{
+            DecodeHintValue, DecodeHints,
+            oned::{CodaBarReader, OneDReader},
+        };
+
+        for (input, data) in [("A1234B", "1234"), ("C-$:/.+D", "-$:/.+")] {
+            let row = encode(input).getRow(0);
+            let decode = |hints: &DecodeHints| {
+                CodaBarReader::default()
+                    .decode_row(0, &row, hints)
+                    .expect("must decode")
+                    .getText()
+                    .to_owned()
+            };
+            assert_eq!(data, decode(&DecodeHints::default()));
+            let hints = DecodeHints::default().with(DecodeHintValue::ReturnCodabarStartEnd(true));
+            assert_eq!(input, decode(&hints));
+        }
+    }
+
     fn doTest(input: &str, expected: &str) {
         let result = encode(input);
         assert_eq!(expected, bit_matrix_test_case::matrix_to_string(&result));
