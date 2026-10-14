@@ -32,7 +32,7 @@ fn upceanextension_black_box1_test_case() {
         BarcodeFormat::EAN_13,
     );
     // super("src/test/resources/blackbox/upcean-extension-1", new MultiFormatReader(), BarcodeFormat.EAN_13);
-    tester.add_test(2, 2, 0.0);
+    tester.add_test(3, 3, 0.0);
 
     tester.test_black_box()
 }
