@@ -123,6 +123,10 @@ pub use code_128_writer::*;
 #[cfg(all(feature = "encoders", feature = "decoders"))]
 mod code_128_writer_test_tase;
 
+#[cfg(test)]
+#[cfg(all(feature = "encoders", feature = "decoders"))]
+mod code_128_reader_test_case;
+
 #[cfg(feature = "encoders")]
 mod upc_a_writer;
 #[cfg(feature = "encoders")]
