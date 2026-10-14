@@ -128,9 +128,11 @@ impl OneDReader for CodaBarReader {
             return Err(Exceptions::NOT_FOUND);
         }
 
-        if !hints.ReturnCodabarStartEnd.unwrap_or(false) {
-            self.decodeRowRXingResult = cached_drrr[1..cached_drrr.len() - 1].iter().collect();
-        }
+        self.decodeRowRXingResult = if hints.ReturnCodabarStartEnd.unwrap_or(false) {
+            cached_drrr.iter().collect()
+        } else {
+            cached_drrr[1..cached_drrr.len() - 1].iter().collect()
+        };
 
         let mut runningCount = 0;
         runningCount += self.counters.iter().take(startOffset).sum::<u32>();
