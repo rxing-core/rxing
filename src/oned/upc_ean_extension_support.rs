@@ -15,7 +15,7 @@
  */
 
 use crate::{
-    RXingResult,
+    Exceptions, RXingResult,
     common::{BitArray, Result},
 };
 
@@ -38,14 +38,22 @@ impl UPCEANExtensionSupport {
     ) -> Result<RXingResult> {
         let extensionStartRange =
             STAND_IN.findGuardPattern(row, rowOffset, false, &Self::EXTENSION_START_PATTERN)?;
+        // An add-on starts 7 to 12 modules after the main symbol. The start
+        // pattern is 4 modules wide; allow a gap of up to 4 pattern widths so the
+        // search does not pick up a neighbouring symbol further along the row.
+        let [start, end] = extensionStartRange;
+        if start.saturating_sub(rowOffset) > 4 * (end - start) {
+            return Err(Exceptions::NOT_FOUND);
+        }
         if let Ok(res_1) = self
             .fiveSupport
             .decodeRow(rowNumber, row, &extensionStartRange)
         {
             Ok(res_1)
         } else {
+            // The two-digit helper takes the located range as [start, end, _].
             self.twoSupport
-                .decodeRow(rowNumber, row, &Self::EXTENSION_START_PATTERN)
+                .decodeRow(rowNumber, row, &[start as u32, end as u32, 0])
         }
     }
 }
