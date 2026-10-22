@@ -392,6 +392,13 @@ pub fn detect(image: &BitMatrix, try_harder: bool) -> Result<MaxicodeDetectionRe
 ///       -
 ///       +
 fn find_concentric_circles(image: &BitMatrix) -> Option<Vec<Circle<'_>>> {
+    // The scan keeps 6 pixels away from every edge, so a smaller image has no room for a
+    // bullseye. Without this check, an image less than 13 pixels wide never enters the
+    // column loop below, `row` never advances and the row loop never ends.
+    if image.getWidth() < 13 || image.getHeight() < 13 {
+        return None;
+    }
+
     let mut bullseyes = Vec::new();
 
     // find things that might be bullseye patterns, we start 6 in because a bullseye is at least six pixels in diameter
@@ -1157,5 +1164,38 @@ mod detector_test {
         let result = crate::maxicode::decoder::decode(&bits).expect("must decode");
 
         assert_eq!(expected_result, result.getText());
+    }
+}
+
+#[cfg(test)]
+mod narrow_image_test {
+    use std::{sync::mpsc, thread, time::Duration};
+
+    use crate::{
+        BinaryBitmap, DecodeHintValue, DecodeHints, Luma8LuminanceSource, Reader,
+        common::HybridBinarizer, maxicode::MaxiCodeReader,
+    };
+
+    /// A blank image less than 13 pixels wide used to make the try harder detector loop
+    /// forever. It must return quickly with an error instead.
+    #[test]
+    fn narrow_images_do_not_hang() {
+        for (width, height) in [(12, 13), (11, 28), (5, 20), (1, 40)] {
+            let (tx, rx) = mpsc::channel();
+            thread::spawn(move || {
+                let source =
+                    Luma8LuminanceSource::new(vec![255; (width * height) as usize], width, height)
+                        .expect("valid luma source");
+                let mut image = BinaryBitmap::new(HybridBinarizer::new(source));
+                let hints = DecodeHints::default().with(DecodeHintValue::TryHarder(true));
+                let result = MaxiCodeReader::default().decode_with_hints(&mut image, &hints);
+                let _ = tx.send(result.is_err());
+            });
+
+            match rx.recv_timeout(Duration::from_secs(10)) {
+                Ok(is_err) => assert!(is_err, "{width}x{height}: blank image must not decode"),
+                Err(_) => panic!("{width}x{height}: MaxiCode detection did not finish"),
+            }
+        }
     }
 }
