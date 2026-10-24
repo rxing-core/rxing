@@ -72,7 +72,8 @@ impl OneDReader for Code128Reader {
         let mut code = 0;
         let mut checksumTotal = startCode as usize;
         let mut multiplier = 0;
-        let mut lastCharacterWasPrintable = true;
+        let mut lastResultLength = 0;
+        let mut lastSymbologyModifier = symbologyModifier;
         let mut upperMode = false;
         let mut shiftUpperMode = false;
 
@@ -88,13 +89,10 @@ impl OneDReader for Code128Reader {
 
             rawCodes.push(code);
 
-            // Remember whether the last code was printable or not (excluding CODE_STOP)
+            // Save the output in case this code is the checksum.
             if code != CODE_STOP {
-                lastCharacterWasPrintable = true;
-            }
-
-            // Add to checksum computation (if not CODE_STOP of course)
-            if code != CODE_STOP {
+                lastResultLength = result.len();
+                lastSymbologyModifier = symbologyModifier;
                 multiplier += 1;
                 checksumTotal += multiplier as usize * code as usize;
             }
@@ -127,11 +125,6 @@ impl OneDReader for Code128Reader {
                         }
                         shiftUpperMode = false;
                     } else {
-                        // Don't let CODE_STOP, which always appears, affect whether whether we think the last
-                        // code was printable or not.
-                        if code != CODE_STOP {
-                            lastCharacterWasPrintable = false;
-                        }
                         match code {
                             CODE_FNC_1 => {
                                 if result.chars().count() == 0 {
@@ -186,9 +179,6 @@ impl OneDReader for Code128Reader {
                         }
                         shiftUpperMode = false;
                     } else {
-                        if code != CODE_STOP {
-                            lastCharacterWasPrintable = false;
-                        }
                         match code {
                             CODE_FNC_1 => {
                                 if result.chars().count() == 0 {
@@ -244,9 +234,6 @@ impl OneDReader for Code128Reader {
                         }
                         result.push_str(&code.to_string());
                     } else {
-                        if code != CODE_STOP {
-                            lastCharacterWasPrintable = false;
-                        }
                         match code {
                             CODE_FNC_1 => {
                                 if result.chars().count() == 0 {
@@ -310,24 +297,14 @@ impl OneDReader for Code128Reader {
             return Err(Exceptions::CHECKSUM);
         }
 
-        // Need to pull out the check digits from string
-        let resultLength = result.chars().count();
-        if resultLength == 0 {
+        if result.is_empty() {
             // false positive
             return Err(Exceptions::NOT_FOUND);
         }
 
-        // Only bother if the result had at least one character, and if the checksum digit happened to
-        // be a printable character. If it was just interpreted as a control code, nothing to remove.
-        if resultLength > 0 && lastCharacterWasPrintable {
-            let len_trim = if codeSet == CODE_CODE_C {
-                resultLength - 2
-            } else {
-                resultLength - 1
-            };
-            let new_str = result.chars().take(len_trim).collect();
-            result = new_str;
-        }
+        // Discard the checksum's text and function code effects.
+        result.truncate(lastResultLength);
+        symbologyModifier = lastSymbologyModifier;
 
         let left: f32 = (startPatternInfo[1] + startPatternInfo[0]) as f32 / 2.0;
         let right: f32 = lastStart as f32 + lastPatternSize as f32 / 2.0;
