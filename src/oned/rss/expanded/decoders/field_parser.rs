@@ -44,10 +44,11 @@ static TWO_DIGIT_DATA_LENGTH: Lazy<HashMap<String, DataLength>> = Lazy::new(|| {
     hm.insert("12".into(), DataLength::fixed(6));
     hm.insert("13".into(), DataLength::fixed(6));
     hm.insert("15".into(), DataLength::fixed(6));
+    hm.insert("16".into(), DataLength::fixed(6));
     hm.insert("17".into(), DataLength::fixed(6));
     hm.insert("20".into(), DataLength::fixed(2));
     hm.insert("21".into(), DataLength::variable(20));
-    hm.insert("22".into(), DataLength::variable(29));
+    hm.insert("22".into(), DataLength::variable(29)); // limited to 20 in latest versions of spec
     hm.insert("30".into(), DataLength::variable(8));
     hm.insert("37".into(), DataLength::variable(8));
     //internal company codes
@@ -60,13 +61,16 @@ static TWO_DIGIT_DATA_LENGTH: Lazy<HashMap<String, DataLength>> = Lazy::new(|| {
 
 static THREE_DIGIT_DATA_LENGTH: Lazy<HashMap<String, DataLength>> = Lazy::new(|| {
     let mut hm = HashMap::new();
+    hm.insert("235".into(), DataLength::variable(28));
     hm.insert("240".into(), DataLength::variable(30));
     hm.insert("241".into(), DataLength::variable(30));
     hm.insert("242".into(), DataLength::variable(6));
+    hm.insert("243".into(), DataLength::variable(20));
     hm.insert("250".into(), DataLength::variable(30));
     hm.insert("251".into(), DataLength::variable(30));
-    hm.insert("253".into(), DataLength::variable(17));
+    hm.insert("253".into(), DataLength::variable(30));
     hm.insert("254".into(), DataLength::variable(20));
+    hm.insert("255".into(), DataLength::variable(25));
     hm.insert("400".into(), DataLength::variable(30));
     hm.insert("401".into(), DataLength::variable(30));
     hm.insert("402".into(), DataLength::fixed(17));
@@ -76,13 +80,23 @@ static THREE_DIGIT_DATA_LENGTH: Lazy<HashMap<String, DataLength>> = Lazy::new(||
     hm.insert("412".into(), DataLength::fixed(13));
     hm.insert("413".into(), DataLength::fixed(13));
     hm.insert("414".into(), DataLength::fixed(13));
+    hm.insert("415".into(), DataLength::fixed(13));
+    hm.insert("416".into(), DataLength::fixed(13));
+    hm.insert("417".into(), DataLength::fixed(13));
     hm.insert("420".into(), DataLength::variable(20));
-    hm.insert("421".into(), DataLength::variable(15));
+    hm.insert("421".into(), DataLength::variable(15)); // limited to 12 in latest versions of spec
     hm.insert("422".into(), DataLength::fixed(3));
     hm.insert("423".into(), DataLength::variable(15));
     hm.insert("424".into(), DataLength::fixed(3));
-    hm.insert("425".into(), DataLength::fixed(3));
+    hm.insert("425".into(), DataLength::variable(15));
     hm.insert("426".into(), DataLength::fixed(3));
+    hm.insert("427".into(), DataLength::variable(3));
+    hm.insert("710".into(), DataLength::variable(20));
+    hm.insert("711".into(), DataLength::variable(20));
+    hm.insert("712".into(), DataLength::variable(20));
+    hm.insert("713".into(), DataLength::variable(20));
+    hm.insert("714".into(), DataLength::variable(20));
+    hm.insert("715".into(), DataLength::variable(20));
 
     hm
 });
@@ -93,8 +107,8 @@ static THREE_DIGIT_PLUS_DIGIT_DATA_LENGTH: Lazy<HashMap<String, DataLength>> = L
         // for (int i = 310; i <= 316; i++) {
         hm.insert(i.to_string(), DataLength::fixed(6));
     }
-    for i in 320..=336 {
-        // for (int i = 320; i <= 336; i++) {
+    for i in 320..=337 {
+        // for (int i = 320; i <= 337; i++) {
         hm.insert(i.to_string(), DataLength::fixed(6));
     }
     for i in 340..=357 {
@@ -109,30 +123,84 @@ static THREE_DIGIT_PLUS_DIGIT_DATA_LENGTH: Lazy<HashMap<String, DataLength>> = L
     hm.insert("391".into(), DataLength::variable(18));
     hm.insert("392".into(), DataLength::variable(15));
     hm.insert("393".into(), DataLength::variable(18));
+    hm.insert("394".into(), DataLength::fixed(4));
+    hm.insert("395".into(), DataLength::fixed(6));
     hm.insert("703".into(), DataLength::variable(30));
+    hm.insert("723".into(), DataLength::variable(30));
 
     hm
 });
 
 static FOUR_DIGIT_DATA_LENGTH: Lazy<HashMap<String, DataLength>> = Lazy::new(|| {
     let mut hm = HashMap::new();
+    hm.insert("4300".into(), DataLength::variable(35));
+    hm.insert("4301".into(), DataLength::variable(35));
+    hm.insert("4302".into(), DataLength::variable(70));
+    hm.insert("4303".into(), DataLength::variable(70));
+    hm.insert("4304".into(), DataLength::variable(70));
+    hm.insert("4305".into(), DataLength::variable(70));
+    hm.insert("4306".into(), DataLength::variable(70));
+    hm.insert("4307".into(), DataLength::fixed(2));
+    hm.insert("4308".into(), DataLength::variable(30));
+    hm.insert("4309".into(), DataLength::fixed(20));
+    hm.insert("4310".into(), DataLength::variable(35));
+    hm.insert("4311".into(), DataLength::variable(35));
+    hm.insert("4312".into(), DataLength::variable(70));
+    hm.insert("4313".into(), DataLength::variable(70));
+    hm.insert("4314".into(), DataLength::variable(70));
+    hm.insert("4315".into(), DataLength::variable(70));
+    hm.insert("4316".into(), DataLength::variable(70));
+    hm.insert("4317".into(), DataLength::fixed(2));
+    hm.insert("4318".into(), DataLength::variable(20));
+    hm.insert("4319".into(), DataLength::variable(30));
+    hm.insert("4320".into(), DataLength::variable(35));
+    hm.insert("4321".into(), DataLength::fixed(1));
+    hm.insert("4322".into(), DataLength::fixed(1));
+    hm.insert("4323".into(), DataLength::fixed(1));
+    hm.insert("4324".into(), DataLength::fixed(10));
+    hm.insert("4325".into(), DataLength::fixed(10));
+    hm.insert("4326".into(), DataLength::fixed(6));
     hm.insert("7001".into(), DataLength::fixed(13));
     hm.insert("7002".into(), DataLength::variable(30));
     hm.insert("7003".into(), DataLength::fixed(10));
+    hm.insert("7004".into(), DataLength::variable(4));
+    hm.insert("7005".into(), DataLength::variable(12));
+    hm.insert("7006".into(), DataLength::fixed(6));
+    hm.insert("7007".into(), DataLength::variable(12));
+    hm.insert("7008".into(), DataLength::variable(3));
+    hm.insert("7009".into(), DataLength::variable(10));
+    hm.insert("7010".into(), DataLength::variable(2));
+    hm.insert("7011".into(), DataLength::variable(10));
+    hm.insert("7020".into(), DataLength::variable(20));
+    hm.insert("7021".into(), DataLength::variable(20));
+    hm.insert("7022".into(), DataLength::variable(20));
+    hm.insert("7023".into(), DataLength::variable(30));
+    hm.insert("7040".into(), DataLength::fixed(4));
+    hm.insert("7240".into(), DataLength::variable(20));
     hm.insert("8001".into(), DataLength::fixed(14));
     hm.insert("8002".into(), DataLength::variable(20));
     hm.insert("8003".into(), DataLength::variable(30));
     hm.insert("8004".into(), DataLength::variable(30));
     hm.insert("8005".into(), DataLength::fixed(6));
     hm.insert("8006".into(), DataLength::fixed(18));
-    hm.insert("8007".into(), DataLength::variable(30));
+    hm.insert("8007".into(), DataLength::variable(34));
     hm.insert("8008".into(), DataLength::variable(12));
+    hm.insert("8009".into(), DataLength::variable(50));
+    hm.insert("8010".into(), DataLength::variable(30));
+    hm.insert("8011".into(), DataLength::variable(12));
+    hm.insert("8012".into(), DataLength::variable(20));
+    hm.insert("8013".into(), DataLength::variable(25));
+    hm.insert("8017".into(), DataLength::fixed(18));
     hm.insert("8018".into(), DataLength::fixed(18));
+    hm.insert("8019".into(), DataLength::variable(10));
     hm.insert("8020".into(), DataLength::variable(25));
-    hm.insert("8100".into(), DataLength::fixed(6));
-    hm.insert("8101".into(), DataLength::fixed(10));
-    hm.insert("8102".into(), DataLength::fixed(2));
+    hm.insert("8026".into(), DataLength::fixed(18));
+    hm.insert("8100".into(), DataLength::fixed(6)); // removed from latest versions of spec
+    hm.insert("8101".into(), DataLength::fixed(10)); // removed from latest versions of spec
+    hm.insert("8102".into(), DataLength::fixed(2)); // removed from latest versions of spec
     hm.insert("8110".into(), DataLength::variable(70));
+    hm.insert("8111".into(), DataLength::fixed(4));
+    hm.insert("8112".into(), DataLength::variable(70));
     hm.insert("8200".into(), DataLength::variable(70));
 
     hm
@@ -280,5 +348,13 @@ mod FieldParserTest {
     #[test]
     fn testParseField2() {
         checkFields("(15)991231(15)991231(3103)001750(10)12A");
+    }
+
+    #[test]
+    fn testParseField2023Ais() {
+        // AIs added or extended in the 2023 GS1 General Specifications
+        checkFields("(16)261231(255)53123456789012345");
+        checkFields("(253)1234567890128ABCDEFGHIJKLMNOPQ");
+        checkFields("(3370)000123(4307)DE(7004)1234(8112)ABC");
     }
 }
