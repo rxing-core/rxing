@@ -372,9 +372,11 @@ fn testTruncatedModeShiftToByteCompaction() {
 /// data codewords they have no operands: the charset form used to index past the
 /// boundary and then underflow the text compaction buffer length, and the
 /// general purpose and user defined forms used to skip operands that do not exist.
+/// Inside a text or numeric compaction run those two forms used to be dropped,
+/// with any operand that was present decoded as data.
 #[test]
 fn testTruncatedEciControlSequence() {
-    let truncatedVectors: [&[u32]; 8] = [
+    let truncatedVectors: [&[u32]; 12] = [
         // charset ECI inside a text compaction run
         &[3, 477, 927],
         &[3, 477, 927, 1000, 1000],
@@ -388,6 +390,12 @@ fn testTruncatedEciControlSequence() {
         // general purpose ECI needs two operands, user defined ECI needs one
         &[4, 901, 100, 926, 1000, 1000],
         &[4, 901, 100, 925, 1000],
+        // the same inside a text compaction run
+        &[3, 477, 926],
+        &[4, 477, 926, 0],
+        &[3, 477, 925, 1000],
+        // user defined ECI ending a numeric compaction run
+        &[5, 902, 1, 223, 925],
     ];
 
     for sampleCodes in truncatedVectors {
@@ -655,6 +663,58 @@ fn testBinaryMultiECI() {
             16, 927, 4, 924, 336, 432, 197, 51, 300, 927, 7, 348, 231, 311, 858, 567,
         ],
         "\u{010c}\u{010c}\u{010c}\u{010c}\u{010c}\u{010c}\u{042f}\u{042f}\u{042f}\u{042f}\u{042f}\u{042f}",
+    );
+}
+
+/// Text Compaction is the mode in effect at the start of a symbol, so an ECI that
+/// opens the data is read in Text Compaction, as is one between two text segments.
+/// 926 carries the ECI number in the two codewords after it and 925 in one. Read
+/// as text, those operands added "AAAA", "AMVP", "AA" or "AB" to the data, and an
+/// operand of 27 (LL) or 28 (ML) latched the sub-mode and changed the payload.
+/// The codewords are Zint 2.16.0's; BWIPP writes the same data codewords.
+#[test]
+fn testGeneralPurposeAndUserDefinedECIInTextCompaction() {
+    // ECI 900 "ABCDEF"
+    performDecodeTest(&[8, 926, 0, 0, 1, 63, 125, 900], "ABCDEF");
+    // ECI 12345 "hello"
+    performDecodeTest(&[8, 926, 12, 645, 817, 131, 344, 900], "hello");
+    // ECI 810900 "ABCDEF"
+    performDecodeTest(&[6, 925, 0, 1, 63, 125], "ABCDEF");
+    // ECI 810901 "0123456789012"
+    performDecodeTest(
+        &[10, 925, 1, 902, 15, 386, 694, 721, 112, 900],
+        "0123456789012",
+    );
+    // ECI 927 "ABCDEF": the operand 27 is LL
+    performDecodeTest(&[8, 926, 0, 27, 1, 63, 125, 900], "ABCDEF");
+    // ECI 810928 "ABCDEF": the operand 28 is ML
+    performDecodeTest(&[6, 925, 28, 1, 63, 125], "ABCDEF");
+    // "abcde", then ECI 900 or ECI 810900 and "fghij": the encoders keep the
+    // lower case sub-mode across the ECI
+    performDecodeTest(&[10, 810, 32, 94, 926, 0, 0, 156, 218, 299], "abcdefghij");
+    performDecodeTest(&[10, 810, 32, 94, 925, 0, 156, 218, 299, 900], "abcdefghij");
+}
+
+/// 926 and 925 end a Numeric Compaction group, as 927 does, instead of having
+/// their operands read as digits, and the 902 latch after the ECI resumes it.
+/// Zint 2.16.0 writes these codewords for two runs of 20 digits, the second with
+/// ECI 900 or ECI 810900; BWIPP writes the same data codewords.
+#[test]
+fn testGeneralPurposeAndUserDefinedECIInNumericCompaction() {
+    let digits = "1234567890123456789012345678901234567890";
+    performDecodeTest(
+        &[
+            22, 902, 211, 358, 354, 304, 269, 753, 190, 926, 0, 0, 902, 211, 358, 354, 304, 269,
+            753, 190, 900, 900,
+        ],
+        digits,
+    );
+    performDecodeTest(
+        &[
+            19, 902, 211, 358, 354, 304, 269, 753, 190, 925, 0, 902, 211, 358, 354, 304, 269, 753,
+            190,
+        ],
+        digits,
     );
 }
 

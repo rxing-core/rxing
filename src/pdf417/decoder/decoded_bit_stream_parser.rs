@@ -462,6 +462,17 @@ fn textCompaction(
                 byteCompactionData = vec![0; capacity];
                 index = 0;
             }
+            // Text Compaction is the mode in effect at the start of a symbol, so
+            // an ECI that opens the data is read here, as is one between two
+            // text segments. These two forms select no character set: skip
+            // their operands as the top-level loop does, rather than decoding
+            // them as text. Nothing is flushed, so the sub-mode carries across.
+            ECI_GENERAL_PURPOSE => {
+                codeIndex = skipOperands(dataCodewords, codeIndex, 2)?;
+            }
+            ECI_USER_DEFINED => {
+                codeIndex = skipOperands(dataCodewords, codeIndex, 1)?;
+            }
             _ => {}
         }
     }
@@ -777,7 +788,9 @@ fn numericCompaction(
             | BEGIN_MACRO_PDF417_CONTROL_BLOCK
             | BEGIN_MACRO_PDF417_OPTIONAL_FIELD
             | MACRO_PDF417_TERMINATOR
-            | ECI_CHARSET => {
+            | ECI_CHARSET
+            | ECI_GENERAL_PURPOSE
+            | ECI_USER_DEFINED => {
                 codeIndex -= 1;
                 end = true;
             }
