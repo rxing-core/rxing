@@ -16,7 +16,7 @@
 
 use crate::{
     Exceptions,
-    common::{BitSource, CharacterSet, DecoderRXingResult, ECIStringBuilder, Eci, Result},
+    common::{BitSource, DecoderRXingResult, ECIStringBuilder, Eci, Result},
 };
 
 /**
@@ -723,7 +723,7 @@ fn decodeBase256Segment(
         *byte = unrandomize255State(bits.readBits(8)?, codewordPosition) as u8;
         codewordPosition += 1;
     }
-    result.append_string(&CharacterSet::ISO8859_1.decode(&bytes)?);
+    result.append_bytes(&bytes);
     byteSegments.push(bytes);
 
     Ok(())
@@ -841,6 +841,30 @@ mod tests {
                 .getText(),
         );
         assert_eq!("00019899", decodedString);
+    }
+
+    #[test]
+    fn testBase256Decode() {
+        // Zint: zint -b DATAMATRIX --eci=26 -d "ΑΒΓΔ" (Greek capitals). ECI 26, then
+        // Base 256 holding the UTF-8 bytes CE 91 CE 92 CE 93 CE 94 (length 0: to the end).
+        let result = decoded_bit_stream_parser::decode(
+            &[241, 27, 231, 87, 186, 19, 230, 63, 17, 107, 60, 152],
+            false,
+        )
+        .expect("decode");
+        assert_eq!("\u{391}\u{392}\u{393}\u{394}", result.getText());
+        assert_eq!(
+            &vec![vec![0xCE, 0x91, 0xCE, 0x92, 0xCE, 0x93, 0xCE, 0x94]],
+            result.getByteSegments()
+        );
+
+        // Zint: zint -b DATAMATRIX --binary --esc -d "\xE9\xE9\xE912\xE8" (no ECI).
+        // Base 256 holding E9 E9 E9, then ASCII "12" and an Upper Shift for E8.
+        let result =
+            decoded_bit_stream_parser::decode(&[231, 47, 170, 64, 213, 142, 235, 105], false)
+                .expect("decode");
+        assert_eq!("ééé12è", result.getText());
+        assert_eq!(&vec![vec![0xE9, 0xE9, 0xE9]], result.getByteSegments());
     }
 
     // TODO(bbrown): Add test cases for each encoding type
