@@ -731,6 +731,8 @@ fn decodeBase256Segment(
 
 /**
  * See ISO 16022:2007, 5.4.1
+ *
+ * Returns whether the ECI can be processed: ECIs 0 to 899 are character sets (AIM ECI Part 1).
  */
 fn decodeECISegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Result<bool> {
     let firstByte = bits.readBits(8)?;
@@ -742,7 +744,7 @@ fn decodeECISegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Resu
     let secondByte = bits.readBits(8)?;
     if firstByte <= 191 {
         result.append_eci(Eci::from((firstByte - 128) * 254 + 127 + secondByte - 1));
-        return Ok((firstByte - 128) * 254 + 127 + secondByte - 1 > 900);
+        return Ok((firstByte - 128) * 254 + 127 + secondByte - 1 <= 899);
     }
 
     let thirdByte = bits.readBits(8)?;
@@ -750,7 +752,7 @@ fn decodeECISegment(bits: &mut BitSource, result: &mut ECIStringBuilder) -> Resu
     result.append_eci(Eci::from(
         (firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1,
     ));
-    Ok((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1 > 900)
+    Ok((firstByte - 192) * 64516 + 16383 + (secondByte - 1) * 254 + thirdByte - 1 <= 899)
 }
 
 /**
@@ -843,4 +845,25 @@ mod tests {
 
     // TODO(bbrown): Add test cases for each encoding type
     // TODO(bbrown): Add test cases for switching encoding types
+
+    #[test]
+    fn testECIDecode() {
+        // Data codewords from Zint: zint -b DATAMATRIX --binary --eci=N -d A
+
+        // ECI 127 (the first two-byte value) and ECI 899 (Binary) can be processed: ]d4
+        for codewords in [[241, 128, 1, 66, 129], [241, 131, 11, 66, 129]] {
+            let result = decoded_bit_stream_parser::decode(&codewords, false).expect("decode");
+            assert_eq!("A", result.getText());
+            assert_eq!(4, result.getSymbologyModifier());
+            assert_eq!("", result.getContentType());
+        }
+
+        // ECI 900 and ECI 16383 (the first three-byte value) cannot: ]d1, UnknownECI
+        for codewords in [[241, 131, 12, 66, 129], [241, 192, 1, 1, 66]] {
+            let result = decoded_bit_stream_parser::decode(&codewords, false).expect("decode");
+            assert_eq!("A", result.getText());
+            assert_eq!(1, result.getSymbologyModifier());
+            assert_eq!("UnknownECI", result.getContentType());
+        }
+    }
 }
