@@ -24,3 +24,5 @@ jobs:
       run: cargo test --workspace --release --verbose
     - name: Run tests (minimal)
       run: cargo test --workspace --release --verbose --no-default-features
+    - name: Run tests (no character set tables)
+      run: cargo test -p rxing --release --verbose --no-default-features --features qrcode,decoders,encoders,no_character_set_support --test no_character_set_support

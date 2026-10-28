@@ -86,7 +86,8 @@ encoders = []
 #/// Enable barcode decoders
 decoders = []
 
-#/// Disable all CharacterSet Support, this will break many barcode formats, but may be desirable for some use cases.
+#/// Leave out the character set tables (encoding_rs or encoding, and Cp437). UTF-8, UTF-16,
+#/// UTF-32, US-ASCII and ISO-8859-1 still work; every other set returns an error.
 no_character_set_support = []
 
 #/// Enable support for all barcode formats, this is a large amount of code, so it is optional.
