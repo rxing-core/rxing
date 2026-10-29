@@ -7,6 +7,9 @@ mod QRErrorCorrectionLevelTest;
 
 mod QRDecodedBitStreamParserTest;
 
+#[cfg(feature = "encoders")]
+mod QRReaderCharacterSetTest;
+
 mod QRDataMaskTest;
 
 mod QRBitMatrixParserTest;
