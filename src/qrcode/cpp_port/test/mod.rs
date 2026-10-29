@@ -14,3 +14,5 @@ mod QRBitMatrixParserTest;
 mod MQRDecoderTest;
 
 mod RMQRDecoderTest;
+
+mod QRReaderTest;

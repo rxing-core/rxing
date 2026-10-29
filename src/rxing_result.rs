@@ -123,14 +123,24 @@ impl RXingResult {
             RXingResultMetadataType::ERROR_CORRECTION_LEVEL,
             RXingResultMetadataValue::ErrorCorrectionLevel(res.ecLevel().to_owned()),
         );
-        meta_data.insert(
-            RXingResultMetadataType::STRUCTURED_APPEND_PARITY,
-            RXingResultMetadataValue::StructuredAppendParity(res.structuredAppend().count),
-        );
-        meta_data.insert(
-            RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE,
-            RXingResultMetadataValue::StructuredAppendSequence(res.structuredAppend().index),
-        );
+        // Only for a symbol with a Structured Append header, and as QRCodeReader stores them:
+        // the symbol sequence indicator, position - 1 in the high nibble and total - 1 in the
+        // low nibble, and the parity byte (ISO/IEC 18004:2015 8.2 and 8.3).
+        let sai = res.structuredAppend();
+        if sai.index >= 0 {
+            if let Ok(parity) = sai.id.parse() {
+                meta_data.insert(
+                    RXingResultMetadataType::STRUCTURED_APPEND_SEQUENCE,
+                    RXingResultMetadataValue::StructuredAppendSequence(
+                        (sai.index << 4) | (sai.count - 1),
+                    ),
+                );
+                meta_data.insert(
+                    RXingResultMetadataType::STRUCTURED_APPEND_PARITY,
+                    RXingResultMetadataValue::StructuredAppendParity(parity),
+                );
+            }
+        }
         meta_data.insert(
             RXingResultMetadataType::SYMBOLOGY_IDENTIFIER,
             RXingResultMetadataValue::SymbologyIdentifier(res.symbologyIdentifier()),
