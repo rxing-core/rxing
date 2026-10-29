@@ -2,9 +2,8 @@ use crate::Exceptions;
 use crate::common::Result;
 
 pub fn calculate_checksum(contents: &str) -> char {
-    let sum: u32 = contents.chars().map(|c| c as u32).sum();
-
-    let remainder = sum % 127;
+    // Reduce as we go: the plain sum overflows u32 for long or non-ASCII input.
+    let remainder = contents.chars().fold(0u32, |sum, c| (sum + c as u32) % 127);
     let diff = 127 - remainder;
     if diff != 127 {
         diff as u8 as char
@@ -13,18 +12,28 @@ pub fn calculate_checksum(contents: &str) -> char {
     }
 }
 
-pub fn ascii_to_numeric(contents: &str) -> String {
+pub fn ascii_to_numeric(contents: &str) -> Result<String> {
     let mut number = String::with_capacity(contents.chars().count() * 2);
 
     for c in contents.chars().map(|x| x as u32) {
-        if c >= 27 {
-            number.push_str(&format!("{:0>2}", (c - 27)));
-        } else {
-            number.push_str(&format!("{:0>2}", (c - 17)));
+        match c {
+            // ESC to '~' are the digit pairs 00 to 99.
+            27..=126 => number.push_str(&format!("{:0>2}", (c - 27))),
+            // DC1 to SUB are 0X to 9X.
+            17..=26 => number.push_str(&format!("{}X", (c - 17))),
+            // DLE switches the rest of the block to ASCII.
+            16 => {
+                return Err(Exceptions::format_with(
+                    "Telepen numeric mode: DLE (switch to ASCII) is not supported",
+                ));
+            }
+            // The other control characters stay control characters (SB,
+            // "Barcode Symbology information and History").
+            _ => number.push(c as u8 as char),
         }
     }
 
-    number
+    Ok(number)
 }
 
 pub fn numeric_to_ascii(contents: &str) -> Result<String> {
@@ -34,9 +43,10 @@ pub fn numeric_to_ascii(contents: &str) -> Result<String> {
         ));
     }
 
-    let mut ascii = Vec::with_capacity(contents.chars().count() / 2);
+    let mut ascii = Vec::with_capacity(contents.len() / 2);
 
-    let cached_contents: Vec<u8> = contents.chars().map(|c| c as u8).collect();
+    // Bytes, not chars: a non-ASCII char cast to u8 can pass for a digit.
+    let cached_contents = contents.as_bytes();
 
     for (i, chunk) in cached_contents.chunks_exact(2).enumerate() {
         let first = chunk[0];
@@ -72,14 +82,43 @@ fn telepen_checksum_test2() {
 }
 
 #[test]
+fn telepen_checksum_long_input_test() {
+    // The plain sum of these chars is 4,296,012,016, above u32::MAX.
+    let contents = "\u{10FFFF}".repeat(3856);
+    let expected = 127 - (3856 * 0x10FFFF_u64 % 127) as u8;
+    assert_eq!(expected as char, calculate_checksum(&contents));
+}
+
+#[test]
 fn telepen_alpha_to_numeric_test() {
     let mut ascii = "'=Siu";
-    let mut result = ascii_to_numeric(ascii);
+    let mut result = ascii_to_numeric(ascii).unwrap();
     assert_eq!("1234567890", result);
 
     ascii = "& oe";
-    result = ascii_to_numeric(ascii);
+    result = ascii_to_numeric(ascii).unwrap();
     assert_eq!("11058474", result);
+
+    // 17 to 26 are 0X to 9X (SB Telepen Barcode Fonts, E2326U, Table 1).
+    ascii = "I\u{17}<";
+    result = ascii_to_numeric(ascii).unwrap();
+    assert_eq!("466X33", result);
+
+    ascii = "\u{11}\u{1a}";
+    result = ascii_to_numeric(ascii).unwrap();
+    assert_eq!("0X9X", result);
+
+    // The other control characters stay as they are.
+    result = ascii_to_numeric("\0A\u{5}B\u{f}\u{7f}").unwrap();
+    assert_eq!("\u{0}38\u{5}39\u{f}\u{7f}", result);
+
+    // DLE, the switch to ASCII, is not implemented.
+    for ascii in ["\u{10}", "12\u{10}"] {
+        assert!(matches!(
+            ascii_to_numeric(ascii),
+            Err(Exceptions::FormatException(_))
+        ));
+    }
 }
 
 #[test]
@@ -91,4 +130,16 @@ fn telepen_numeric_to_ascii_test() {
     numeric = "11058474";
     result = numeric_to_ascii(numeric).unwrap();
     assert_eq!("& oe", result);
+
+    numeric = "466X33";
+    result = numeric_to_ascii(numeric).unwrap();
+    assert_eq!("I\u{17}<", result);
+
+    // Not digits, although their low bytes are.
+    for numeric in ["1\u{135}2\u{135}", "\u{131}\u{132}"] {
+        assert!(numeric_to_ascii(numeric).is_err());
+    }
+
+    // Not dropped, although it makes the byte length even.
+    assert!(numeric_to_ascii("12\u{e9}").is_err());
 }
