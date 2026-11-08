@@ -235,7 +235,8 @@ impl QrReader {
                 let detectorResult = SampleQR(binImg, &fpSet);
                 if let Ok(detectorResult) = detectorResult {
                     // if (detectorResult.is_ok()) {
-                    let decoderResult = Decode(detectorResult.getBits());
+                    let decoderResult = Decode(detectorResult.getBits())
+                        .map(|r| r.withCharacterSetHint(hints.CharacterSet.clone()));
                     let position = detectorResult.getPoints();
                     if let Ok(decoderResult) = decoderResult {
                         if decoderResult.isValid() {
@@ -270,7 +271,8 @@ impl QrReader {
                 let detectorResult = SampleMQR(binImg, *fp);
                 if let Ok(detectorResult) = detectorResult {
                     // if (detectorResult.is_ok()) {
-                    let decoderResult = Decode(detectorResult.getBits());
+                    let decoderResult = Decode(detectorResult.getBits())
+                        .map(|r| r.withCharacterSetHint(hints.CharacterSet.clone()));
                     let position = detectorResult.getPoints();
                     if let Ok(decoderResult) = decoderResult {
                         if decoderResult.isValid() {
@@ -298,7 +300,8 @@ impl QrReader {
                 let detectorResult = SampleRMQR(binImg, *fp);
                 if let Ok(detectorResult) = detectorResult {
                     // if (detectorResult.is_ok()) {
-                    let decoderResult = Decode(detectorResult.getBits());
+                    let decoderResult = Decode(detectorResult.getBits())
+                        .map(|r| r.withCharacterSetHint(hints.CharacterSet.clone()));
                     let position = detectorResult.getPoints();
                     if let Ok(decoderResult) = decoderResult {
                         if decoderResult.isValid() {
@@ -379,7 +382,8 @@ impl QrReader {
         // if (!detectorResult.isValid())
         // 	{return {};}
 
-        let decoderResult = Decode(detectorResult.getBits())?;
+        let decoderResult =
+            Decode(detectorResult.getBits())?.withCharacterSetHint(hints.CharacterSet.clone());
         let position = detectorResult.getPoints();
 
         Ok(RXingResult::with_decoder_result(

@@ -164,6 +164,16 @@ where
         self
     }
 
+    /// Decode byte segments without an ECI in this character set (`DecodeHints::CharacterSet`).
+    #[cfg(feature = "qrcode")]
+    pub(crate) fn withCharacterSetHint(
+        mut self,
+        character_set: Option<String>,
+    ) -> DecoderResult<T> {
+        self.content.set_character_set_hint(character_set);
+        self
+    }
+
     // pub fn build(self) -> DecoderResult<T> {
 
     // }

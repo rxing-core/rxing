@@ -43,6 +43,8 @@ pub struct ECIStringBuilder {
     pub(crate) eci_positions: Vec<(Eci, usize, usize)>, // (Eci, start, end)
     pub symbology: SymbologyIdentifier,
     eci_list: HashSet<Eci>,
+    character_set_hint: Option<String>,
+    positions_before_eci: Vec<(Eci, usize, usize)>, // (Eci, start, end) before the first ECI
 }
 
 impl ECIStringBuilder {
@@ -54,6 +56,8 @@ impl ECIStringBuilder {
             has_eci: false,
             symbology: SymbologyIdentifier::default(),
             eci_list: HashSet::default(),
+            character_set_hint: None,
+            positions_before_eci: Vec::default(),
         }
     }
 
@@ -137,11 +141,23 @@ impl ECIStringBuilder {
         }
     }
 
+    /// Sets the character set name (as in `DecodeHints::CharacterSet`) that byte segments
+    /// without an ECI are decoded with, instead of guessing it.
+    #[cfg(feature = "qrcode")]
+    pub(crate) fn set_character_set_hint(&mut self, character_set: Option<String>) {
+        self.eci_result = None;
+        self.character_set_hint = character_set;
+    }
+
     /// Change the current encoding characterset, finding an eci to do so
     pub fn switch_encoding(&mut self, charset: CharacterSet, is_eci: bool) {
         //self.append_eci(Eci::from(charset))
         if is_eci && !self.has_eci {
-            self.eci_positions.clear();
+            // Keep the segments before the first ECI: their byte data takes the CharacterSet hint
+            if let Some(last) = self.eci_positions.last_mut() {
+                last.2 = self.bytes.len()
+            }
+            self.positions_before_eci = std::mem::take(&mut self.eci_positions);
         }
         if is_eci || !self.has_eci
         //{self.eci_positions.push_back({eci, Size(bytes)});}
@@ -170,9 +186,7 @@ impl ECIStringBuilder {
                 .first()
                 .unwrap_or(&(Eci::ISO8859_1, self.bytes.len(), 0));
 
-        encoded_string.push_str(
-            &Self::encode_segment(&self.bytes[0..end], Eci::ISO8859_1).unwrap_or_default(),
-        );
+        encoded_string.push_str(&self.encode_before_first_eci(end));
 
         if end == self.bytes.len() {
             return encoded_string;
@@ -187,7 +201,9 @@ impl ECIStringBuilder {
                 *eci_end
             };
             encoded_string.push_str(
-                &Self::encode_segment(&self.bytes[*eci_start..end], *eci).unwrap_or_default(),
+                &self
+                    .encode_segment(&self.bytes[*eci_start..end], *eci)
+                    .unwrap_or_default(),
             );
         }
 
@@ -195,7 +211,42 @@ impl ECIStringBuilder {
         encoded_string
     }
 
-    fn encode_segment(bytes: &[u8], eci: Eci) -> Option<String> {
+    /// Encodes the bytes before the first ECI as ISO-8859-1, except byte segments, which take the
+    /// CharacterSet hint if it names a known character set.
+    fn encode_before_first_eci(&self, end: usize) -> String {
+        let hint = self
+            .character_set_hint
+            .as_deref()
+            .and_then(CharacterSet::get_character_set_by_name);
+        let mut encoded_string = String::with_capacity(end);
+        let mut start = 0;
+        if let Some(hint) = hint {
+            for &(eci, segment_start, segment_end) in &self.positions_before_eci {
+                if eci != Eci::Unknown || segment_start >= segment_end || segment_end > end {
+                    continue;
+                }
+                encoded_string.push_str(
+                    &self
+                        .encode_segment(&self.bytes[start..segment_start], Eci::ISO8859_1)
+                        .unwrap_or_default(),
+                );
+                let segment = &self.bytes[segment_start..segment_end];
+                match hint.decode(segment) {
+                    Ok(text) => encoded_string.push_str(&text),
+                    Err(_) => encoded_string.extend(segment.iter().map(|&b| char::from(b))),
+                }
+                start = segment_end;
+            }
+        }
+        encoded_string.push_str(
+            &self
+                .encode_segment(&self.bytes[start..end], Eci::ISO8859_1)
+                .unwrap_or_default(),
+        );
+        encoded_string
+    }
+
+    fn encode_segment(&self, bytes: &[u8], eci: Eci) -> Option<String> {
         let mut not_encoded_yet = true;
         let mut encoded_string = String::with_capacity(bytes.len());
         if ![Eci::Binary, Eci::Unknown].contains(&eci) {
@@ -222,7 +273,14 @@ impl ECIStringBuilder {
             }
 
             else */
-            if let Some(found_encoding) = string_utils::guessCharset(bytes, &DecodeHints::default())
+            // The hint covers byte segments without an ECI. Under an ECI rxing does not know
+            // (has_eci), and for a name rxing does not know, guess as before.
+            let hints = DecodeHints {
+                CharacterSet: self.character_set_hint.clone().filter(|_| !self.has_eci),
+                ..Default::default()
+            };
+            if let Some(found_encoding) = string_utils::guessCharset(bytes, &hints)
+                .or_else(|| string_utils::guessCharset(bytes, &DecodeHints::default()))
             {
                 if let Ok(found_encoded_str) = found_encoding.decode(bytes) {
                     encoded_string.push_str(&found_encoded_str);
