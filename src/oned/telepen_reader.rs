@@ -223,7 +223,7 @@ impl OneDReader for TelepenReader {
         }
 
         if matches!(hints.TelepenAsNumeric, Some(true)) {
-            contentString = telepen_common::ascii_to_numeric(&contentString);
+            contentString = telepen_common::ascii_to_numeric(&contentString)?;
         }
 
         let mut runningCount = 0;
@@ -604,6 +604,98 @@ mod tests {
             ),
             "a region ending in wide elements has no Telepen stop pattern"
         );
+    }
+
+    /// Builds a row from a module dump in hex (as printed by `zint --dump`),
+    /// `scale` pixels per module, after `lead` white modules and before ten.
+    fn row_from_dump(dump: &str, modules: usize, scale: usize, lead: usize) -> BitArray {
+        let bits: Vec<bool> = dump
+            .split_whitespace()
+            .flat_map(|b| {
+                let byte = u8::from_str_radix(b, 16).unwrap();
+                (0..8).rev().map(move |k| byte >> k & 1 == 1)
+            })
+            .take(modules)
+            .collect();
+        let mut row = BitArray::with_size((lead + modules + 10) * scale);
+        for (i, _) in bits.iter().enumerate().filter(|(_, b)| **b) {
+            for k in 0..scale {
+                row.set((lead + i) * scale + k);
+            }
+        }
+        row
+    }
+
+    fn numeric_hints() -> DecodeHints {
+        DecodeHints::default().with(crate::DecodeHintValue::TelepenAsNumeric(true))
+    }
+
+    /// Glyphs 17 to 26 are the numeric pairs 0X to 9X (SB Telepen Barcode
+    /// Fonts, E2326U Issue 3, Table 1). They used to read as 00 to 09.
+    #[test]
+    fn numeric_mode_reads_x_pairs() {
+        // zint -b TELEPEN_NUM --dump -d 12345X (Zint 2.16.0), 95 modules.
+        let row = row_from_dump("AA B8 AB AE A2 A2 88 BA B8 EE E2 AA", 95, 3, 10);
+
+        let result = TelepenReader::new()
+            .decode_row(0, &row, &numeric_hints())
+            .unwrap();
+        assert_eq!("12345X", result.getText());
+
+        let result = TelepenReader::new()
+            .decode_row(0, &row, &DecodeHints::default())
+            .unwrap();
+        assert_eq!("'=\u{16}", result.getText());
+    }
+
+    #[cfg(feature = "encoders")]
+    #[test]
+    fn numeric_mode_round_trip() {
+        use crate::oned::{OneDimensionalCodeWriter, TelepenWriter};
+
+        let encode_hints =
+            crate::EncodeHints::default().with(crate::EncodeHintValue::TelepenAsNumeric(true));
+        let modules = TelepenWriter
+            .encode_oned_with_hints("466X33", &encode_hints)
+            .unwrap();
+        let mut row = BitArray::with_size((10 + modules.len() + 10) * 3);
+        for (i, _) in modules.iter().enumerate().filter(|(_, m)| **m) {
+            for k in 0..3 {
+                row.set((10 + i) * 3 + k);
+            }
+        }
+
+        let result = TelepenReader::new()
+            .decode_row(0, &row, &numeric_hints())
+            .unwrap();
+        assert_eq!("466X33", result.getText());
+    }
+
+    /// Control characters other than 0X to 9X "stay as control characters"
+    /// in numeric mode (SB, "Barcode Symbology information and History").
+    /// Below 17 they underflowed `c - 17`: a panic in debug builds, digits
+    /// such as 4294967284 in release builds.
+    #[test]
+    fn numeric_mode_keeps_other_control_characters() {
+        // zint -b TELEPEN --binary --dump with the bytes 41 05 42 ("A\x05B").
+        let row = row_from_dump("AA B8 BB B8 B8 EE E3 B8 88 AA E2 AA", 95, 3, 10);
+
+        let result = TelepenReader::new()
+            .decode_row(0, &row, &numeric_hints())
+            .unwrap();
+        assert_eq!("38\u{5}39", result.getText());
+
+        let result = TelepenReader::new()
+            .decode_row(0, &row, &DecodeHints::default())
+            .unwrap();
+        assert_eq!("A\u{5}B", result.getText());
+
+        // DLE switches to ASCII, which is not implemented: an error, not digits.
+        // zint -b TELEPEN --binary --dump with the bytes 41 10 42 ("A\x10B").
+        let row = row_from_dump("AA B8 BB B8 EE BA E3 B8 AE 2A E2 AA", 95, 3, 10);
+
+        let result = TelepenReader::new().decode_row(0, &row, &numeric_hints());
+        assert!(matches!(result, Err(Exceptions::FormatException(_))));
     }
 
     /// Regression test: an entirely-black row makes the "move to first white

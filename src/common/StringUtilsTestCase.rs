@@ -25,7 +25,7 @@
 
 use rand::RngExt;
 
-use crate::{DecodeHints, common::string_utils};
+use crate::{DecodeHintValue, DecodeHints, common::string_utils};
 
 use super::CharacterSet;
 
@@ -37,8 +37,9 @@ fn test_random() {
     // for byte in &mut bytes {
     //     *byte = r.gen();
     // }
+    // Neither UTF-8 nor Shift_JIS, so the ISO/IEC 18004 default
     assert_eq!(
-        CharacterSet::UTF8,
+        CharacterSet::ISO8859_1,
         string_utils::guessCharset(&bytes, &DecodeHints::default()).unwrap()
     );
 }
@@ -93,6 +94,102 @@ fn test_utf16_le() {
         CharacterSet::UTF16LE,
         CharacterSet::UTF16LE.get_charset_name(),
     );
+}
+
+#[test]
+fn test_iso88591_symbols() {
+    // Größe ±5%
+    do_test(
+        &[0x47, 0x72, 0xf6, 0xdf, 0x65, 0x20, 0xb1, 0x35, 0x25],
+        CharacterSet::ISO8859_1,
+        "ISO8859_1",
+    );
+}
+
+#[test]
+fn test_iso88591_guillemets() {
+    // «Bonjour»
+    do_test(
+        &[0xab, 0x42, 0x6f, 0x6e, 0x6a, 0x6f, 0x75, 0x72, 0xbb],
+        CharacterSet::ISO8859_1,
+        "ISO8859_1",
+    );
+}
+
+#[test]
+fn test_iso88591_superscript() {
+    // 3 m²
+    do_test(
+        &[0x33, 0x20, 0x6d, 0xb2],
+        CharacterSet::ISO8859_1,
+        "ISO8859_1",
+    );
+}
+
+#[test]
+fn test_shift_jis_ideographic_space() {
+    // 東京　駅
+    do_test(
+        &[0x93, 0x8c, 0x8b, 0x9e, 0x81, 0x40, 0x89, 0x77],
+        CharacterSet::Shift_JIS,
+        "SJIS",
+    );
+}
+
+#[test]
+fn test_shift_jis_half_width_katakana_and_kanji() {
+    // ｺｰﾋｰ 120円
+    do_test(
+        &[0xba, 0xb0, 0xcb, 0xb0, 0x20, 0x31, 0x32, 0x30, 0x89, 0x7e],
+        CharacterSet::Shift_JIS,
+        "SJIS",
+    );
+}
+
+#[test]
+fn test_shift_jis_half_width_katakana() {
+    // ﾃｽﾄ: 3 half-width katakana in a row
+    do_test(&[0xc3, 0xbd, 0xc4], CharacterSet::Shift_JIS, "SJIS");
+}
+
+#[test]
+fn test_two_half_width_katakana() {
+    // ｱｲ, or ±² in ISO-8859-1: fewer than 3 half-width katakana are no evidence of Shift_JIS
+    let bytes = [0xb1, 0xb2];
+    do_test(&bytes, CharacterSet::ISO8859_1, "ISO8859_1");
+    let hints = DecodeHints::default().with(DecodeHintValue::CharacterSet("Shift_JIS".to_owned()));
+    assert_eq!(
+        Some(CharacterSet::Shift_JIS),
+        string_utils::guessCharset(&bytes, &hints)
+    );
+}
+
+#[test]
+fn test_shift_jis_double_byte_run() {
+    // 鰊饂飩: 3 double-byte characters in a row, none with a byte in 0x80-0x9F
+    do_test(
+        &[0xe9, 0xd7, 0xe9, 0x5a, 0xe9, 0x4a],
+        CharacterSet::Shift_JIS,
+        "SJIS",
+    );
+}
+
+#[test]
+fn test_shift_jis_unfinished_double_byte() {
+    // A lead byte at the end: not valid Shift_JIS
+    do_test(&[0x81], CharacterSet::ISO8859_1, "ISO8859_1");
+}
+
+#[test]
+fn test_shift_jis_trail_byte_0x7f() {
+    // 0x7F is not a trail byte
+    do_test(&[0x81, 0x7f], CharacterSet::ISO8859_1, "ISO8859_1");
+}
+
+#[test]
+fn test_shift_jis_trail_byte_0xfc() {
+    // 0xFC is the last trail byte
+    do_test(&[0x81, 0xfc], CharacterSet::Shift_JIS, "SJIS");
 }
 
 fn do_test(bytes: &[u8], charset: CharacterSet, encoding: &str) {
