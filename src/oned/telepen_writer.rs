@@ -78,7 +78,8 @@ impl OneDimensionalCodeWriter for TelepenWriter {
 
         let matches: Vec<&str> = RE.find_iter(&binary).map(|m| m.as_str()).collect();
 
-        let mut result = vec![false; 2000];
+        // Each bit takes two modules.
+        let mut result = vec![false; binary.len() * 2];
         let mut resultPosition = 0;
 
         for b in matches {
@@ -209,6 +210,7 @@ mod TelepenWriterTestCase {
     use crate::{
         BarcodeFormat, EncodeHintValue, EncodeHints, Writer,
         common::{BitMatrix, bit_matrix_test_case},
+        oned::{OneDimensionalCodeWriter, telepen_common},
     };
 
     use super::TelepenWriter;
@@ -240,6 +242,74 @@ mod TelepenWriterTestCase {
             ),
             true,
         );
+    }
+
+    /// The writer used a fixed buffer of 2000 modules, so 123 characters
+    /// (or 246 digits in numeric mode) panicked with an index out of bounds.
+    #[test]
+    fn testEncodeLongInput() {
+        let ascii: String = (0..300).map(|i| (b' ' + (i % 95) as u8) as char).collect();
+        let digits: String = (0..600).map(|i| (b'0' + (i % 10) as u8) as char).collect();
+        let numeric_hints = EncodeHints::default().with(EncodeHintValue::TelepenAsNumeric(true));
+
+        for (input, hints) in [
+            ("A".repeat(123), EncodeHints::default()),
+            (ascii, EncodeHints::default()),
+            ("1".repeat(246), numeric_hints.clone()),
+            (digits, numeric_hints),
+        ] {
+            let modules = TelepenWriter
+                .encode_oned_with_hints(&input, &hints)
+                .expect("must encode");
+
+            let data = if hints.TelepenAsNumeric == Some(true) {
+                telepen_common::numeric_to_ascii(&input).unwrap()
+            } else {
+                input
+            };
+            let checksum = telepen_common::calculate_checksum(&data);
+
+            // 16 modules a character, less the final space.
+            assert_eq!(16 * (data.len() + 3) - 1, modules.len());
+            assert_eq!(format!("_{data}{checksum}z"), read_modules(&modules));
+        }
+    }
+
+    /// Reads modules back with the four bar-space pairs of Telepen: narrow
+    /// and narrow are 1, wide and narrow 00, wide and wide 010, narrow and
+    /// wide 01 and 10 in turn. TelepenReader cannot read symbols this long:
+    /// it merges runs narrower than 0.1% of the row into their neighbours,
+    /// and the narrow elements of 123 or more characters are narrower.
+    fn read_modules(modules: &[bool]) -> String {
+        let mut runs = vec![0];
+        for (i, module) in modules.iter().enumerate() {
+            if i > 0 && *module != modules[i - 1] {
+                runs.push(0);
+            }
+            *runs.last_mut().unwrap() += 1;
+        }
+        // The final space is not output.
+        runs.push(1);
+
+        let mut bits = vec![];
+        let mut ten_next = false;
+        for pair in runs.chunks(2) {
+            match (pair[0], pair[1]) {
+                (1, 1) => bits.push(1),
+                (3, 1) => bits.extend([0, 0]),
+                (3, 3) => bits.extend([0, 1, 0]),
+                (1, 3) => {
+                    bits.extend(if ten_next { [1, 0] } else { [0, 1] });
+                    ten_next = !ten_next;
+                }
+                pair => panic!("not a Telepen bar and space: {pair:?}"),
+            }
+        }
+
+        // Least significant bit first; the eighth bit is parity.
+        bits.chunks(8)
+            .map(|byte| (byte[..7].iter().rev().fold(0, |acc, bit| acc << 1 | bit)) as u8 as char)
+            .collect()
     }
 
     fn doTest(input: &str, expected: &str, numeric: bool) {
