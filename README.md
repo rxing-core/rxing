@@ -12,6 +12,8 @@ Porting of the testing library is incomplete. Currently all positive tests are i
 
 Porting was done with the rust language in mind, though some parts may resemble java more directly than a proper clean-sheet rust implementation. The process of "rustifying" the code is ongoing.
 
+Please note: the v0.9.x series is the last that will be pinned to 1.85, subsequent minor releases will be pinned to the current rust toolchain minues two stable versions for their lifetime.
+
 ## Installation
 
 Add `rxing` to your `Cargo.toml`:
@@ -38,6 +40,8 @@ If you're looking for a WASM version of this library, check out [rxing-wasm](htt
 
 ## Minimum Rust Version
 Currently building with a minimum rust version of 1.85. Versions below that are not tested and may not compile or run as expected.
+
+Please note that v0.9.x is the last minor release series that will be pinned to rust 1.85. Going forward minor release series will be tied to a rolling stable rust based on the date of their release.
 
 ## Status
 All barcode formats are tested and functioning in their current state against current tests.
