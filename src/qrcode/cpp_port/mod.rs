@@ -1,5 +1,5 @@
 #[cfg(feature = "decoders")]
-mod data_mask;
+pub mod data_mask;
 #[cfg(feature = "decoders")]
 pub mod decoder;
 #[cfg(feature = "decoders")]
@@ -11,7 +11,7 @@ mod qr_cpp_reader;
 pub use qr_cpp_reader::QrReader;
 
 #[cfg(feature = "decoders")]
-mod bitmatrix_parser;
+pub mod bitmatrix_parser;
 
 mod qr_type;
 pub use qr_type::Type;

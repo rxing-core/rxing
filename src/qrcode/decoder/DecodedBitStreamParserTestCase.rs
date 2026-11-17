@@ -133,3 +133,59 @@ fn testHanziLevel1() {
 }
 
 // TODO definitely need more tests here
+
+fn decode_text(builder: &mut BitSourceBuilder) -> crate::common::Result<String> {
+    Ok(decoded_bit_stream_parser::decode(
+        builder.asByteArray(),
+        Version::getVersionForNumber(1).expect("unwrap"),
+        ErrorCorrectionLevel::H,
+        &DecodeHints::default(),
+    )?
+    .getText()
+    .to_owned())
+}
+
+fn write_alphanumeric(builder: &mut BitSourceBuilder, values: &[u32]) {
+    builder.write(0x02, 4); // Alphanumeric mode
+    builder.write(values.len() as u32, 9);
+    for pair in values.chunks(2) {
+        match pair {
+            [a, b] => builder.write(a * 45 + b, 11),
+            [a] => builder.write(*a, 6),
+            _ => unreachable!(),
+        }
+    }
+}
+
+#[test]
+fn testFNC1AlphanumericDoublePercent() {
+    // 5 % 6 % % A -> "5<GS>6%A"
+    let mut builder = BitSourceBuilder::new();
+    builder.write(0x05, 4); // FNC1 first position
+    write_alphanumeric(&mut builder, &[5, 38, 6, 38, 38, 10]);
+    assert_eq!("5\u{1D}6%A", decode_text(&mut builder).expect("decode"));
+
+    // %%% -> "%<GS>", %%%% -> "%%"
+    let mut builder = BitSourceBuilder::new();
+    builder.write(0x05, 4);
+    write_alphanumeric(&mut builder, &[38, 38, 38]);
+    assert_eq!("%\u{1D}", decode_text(&mut builder).expect("decode"));
+
+    let mut builder = BitSourceBuilder::new();
+    builder.write(0x05, 4);
+    write_alphanumeric(&mut builder, &[38, 38, 38, 38]);
+    assert_eq!("%%", decode_text(&mut builder).expect("decode"));
+}
+
+#[test]
+fn testFNC1AlphanumericTrailingPercentAfterOtherSegment() {
+    // Byte "XY" then alphanumeric "%": the lone % must become <GS>.
+    let mut builder = BitSourceBuilder::new();
+    builder.write(0x05, 4); // FNC1 first position
+    builder.write(0x04, 4); // Byte mode
+    builder.write(0x02, 8);
+    builder.write(b'X' as u32, 8);
+    builder.write(b'Y' as u32, 8);
+    write_alphanumeric(&mut builder, &[38]);
+    assert_eq!("XY\u{1D}", decode_text(&mut builder).expect("decode"));
+}

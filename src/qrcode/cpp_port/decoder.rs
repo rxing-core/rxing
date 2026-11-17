@@ -153,8 +153,14 @@ pub fn DecodeAlphanumericSegment(
     // See section 6.4.8.1, 6.4.8.2
     if result.symbology.aiFlag != AIFlag::None {
         // We need to massage the result a bit if in an FNC1 mode:
-        for i in 0..buffer.len() {
-            // for (size_t i = 0; i < buffer.length(); i++) {
+        // The loop bound must be re-evaluated each iteration: the `%%` branch
+        // below shortens `buffer` with `remove()`, so the `0..buffer.len()`
+        // range — fixed at loop entry — walks off the end as soon as the run
+        // contains one `%%` (the C++ original re-evaluates `buffer.end()` at
+        // every iteration).
+        let mut i = 0;
+        while i < buffer.len() {
+            // for (auto i = buffer.begin(); i != buffer.end(); i++) {
             if buffer.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == &'%' {
                 if i < buffer.len() - 1
                     && buffer.get(i + 1).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == &'%'
@@ -169,6 +175,7 @@ pub fn DecodeAlphanumericSegment(
                     // buffer[i] = static_cast<char>(0x1D);
                 }
             }
+            i += 1;
         }
     }
 

@@ -43,6 +43,26 @@ pub struct RXingResult {
     timestamp: u128,
     line_count: usize,
 }
+/// Milliseconds since the Unix epoch, for a result's timestamp.
+///
+/// Uses the standard library's clock, so that `chrono` is only needed by the
+/// features that parse dates (`client_support`). `std::time::SystemTime` is
+/// not available on `wasm32-unknown-unknown`, so `wasm_support` keeps using
+/// chrono's JavaScript-backed clock there.
+pub(crate) fn timestamp_now_millis() -> u128 {
+    #[cfg(all(feature = "wasm_support", target_arch = "wasm32"))]
+    {
+        chrono::Utc::now().timestamp_millis() as u128
+    }
+    #[cfg(not(all(feature = "wasm_support", target_arch = "wasm32")))]
+    {
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis())
+            .unwrap_or_default()
+    }
+}
+
 impl RXingResult {
     pub fn new(
         text: &str,
@@ -50,13 +70,7 @@ impl RXingResult {
         resultPoints: Vec<Point>,
         format: BarcodeFormat,
     ) -> Self {
-        Self::new_timestamp(
-            text,
-            rawBytes,
-            resultPoints,
-            format,
-            chrono::Utc::now().timestamp_millis() as u128,
-        )
+        Self::new_timestamp(text, rawBytes, resultPoints, format, timestamp_now_millis())
     }
 
     pub fn new_timestamp(
