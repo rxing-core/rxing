@@ -119,7 +119,7 @@ impl AztecReader {
             decoderRXingResult.getNumBits(),
             points.to_vec(),
             BarcodeFormat::AZTEC,
-            chrono::Utc::now().timestamp_millis() as u128,
+            crate::rxing_result::timestamp_now_millis(),
         );
 
         let byteSegments = decoderRXingResult.getByteSegments();
