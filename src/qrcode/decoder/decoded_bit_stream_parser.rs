@@ -368,19 +368,20 @@ fn decodeAlphanumericSegment(
     // See section 6.4.8.1, 6.4.8.2
     if fc1InEffect {
         // We need to massage the result a bit if in an FNC1 mode:
-        for i in start..r_hld.len() {
-            if r_hld.get(i).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == &'%' {
-                if i < result.len() - 1
-                    && r_hld.get(i + 1).ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)? == &'%'
-                {
+        // The bound is re-checked each iteration because the `%%` branch
+        // shortens `r_hld`.
+        let mut i = start;
+        while i < r_hld.len() {
+            if r_hld[i] == '%' {
+                if r_hld.get(i + 1) == Some(&'%') {
                     // %% is rendered as %
                     r_hld.remove(i + 1);
                 } else {
                     // In alpha mode, % should be converted to FNC1 separator 0x1D
-                    r_hld[i..i + 1].copy_from_slice(&[0x1D as char]);
-                    // r_hld.replace_range(i..i + 1, "\u{1D}");
+                    r_hld[i] = 0x1D as char;
                 }
             }
+            i += 1;
         }
     }
 
