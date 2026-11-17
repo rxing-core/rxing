@@ -22,7 +22,7 @@ encoding_rs = { version = "0.8", optional = true }
 encoding = { version = "0.2", optional = true }
 urlencoding = {version = "2.1", optional = true}
 uriparse = {version = "0.6", optional = true}
-chrono = { version = "0.4", default-features = false, features = ["clock", "std", "oldtime"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "std", "oldtime"], optional = true }
 chrono-tz = {version = "0.10", optional = true}
 image = {version = "=0.25.8", optional = true, default-features = false}
 imageproc = {version = "0.25", optional = true, default-features = false}
@@ -137,7 +137,7 @@ svg_write = ["dep:svg"]
 svg_read = ["dep:resvg", "image"]
 
 #/// Enable support building this module in WASM
-wasm_support = ["chrono/wasmbind"]
+wasm_support = ["dep:chrono", "chrono/wasmbind"]
 
 #/// Enable experimental features, risky.
 experimental_features = []
@@ -149,7 +149,7 @@ serde = ["dep:serde"]
 otsu_level = ["image"]
 
 #/// Adds "client" features do decode many common data formats found in barcodes
-client_support = ["dep:chrono-tz", "dep:fancy-regex", "dep:urlencoding", "dep:uriparse"]
+client_support = ["dep:chrono", "dep:chrono-tz", "dep:fancy-regex", "dep:urlencoding", "dep:uriparse"]
 
 #/// For the `FilteredImageReader` if this feature is enabled it
 #/// will always reverse the order of pyramid scans
