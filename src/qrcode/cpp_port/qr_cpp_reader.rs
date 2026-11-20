@@ -118,8 +118,11 @@
 // } // namespace ZXing::QRCode
 
 use crate::{
-    BarcodeFormat, DecodeHints, Exceptions, ImmutableReader, RXingResult, Reader,
-    common::{DetectorRXingResult, cpp_essentials::ConcentricPattern},
+    BarcodeFormat, DecodeHints, Exceptions, ImmutableReader, Point, RXingResult, Reader,
+    common::{
+        BitMatrix, DetectorRXingResult,
+        cpp_essentials::{ConcentricPattern, DecoderResult},
+    },
 };
 
 #[cfg(feature = "multi_barcode_readers")]
@@ -128,10 +131,13 @@ use crate::multi::MultipleBarcodeReader;
 use super::{
     decoder::Decode,
     detector::{
-        DetectPureMQR, DetectPureQR, DetectPureRMQR, FindFinderPatterns, GenerateFinderPatternSets,
-        SampleMQR, SampleQR, SampleRMQR,
+        DetectPureMQR, DetectPureQR, DetectPureRMQR, FindFinderPatterns, FinderPatternSet,
+        GenerateFinderPatternSets, SampleMQR, SampleQR, SampleRMQR,
     },
 };
+
+/// Dilation radii tried by [`QrReader::decode_qr_dilated`], as fractions of the module size.
+const DILATION_MODULE_FRACTIONS: [f32; 2] = [0.2, 0.35];
 
 #[derive(Default)]
 pub struct QrReader;
@@ -182,6 +188,63 @@ impl MultipleBarcodeReader for QrReader {
 }
 
 impl QrReader {
+    /// Decode sampled QR bits, returning the result only if it is valid.
+    fn decode_qr_bits(bits: &BitMatrix, hints: &DecodeHints) -> Option<DecoderResult<bool>> {
+        Decode(bits)
+            .ok()
+            .map(|r| r.withCharacterSetHint(hints.CharacterSet.clone()))
+            .filter(|r| r.isValid())
+    }
+
+    /// Fallback for stylized QR codes whose dark modules are drawn as marks much
+    /// smaller than the module cell (dots, thin strokes): centre-point sampling
+    /// then misses many dark modules even though detection succeeded. Re-sample
+    /// the same finder pattern set from a dilated copy of the image, at radii
+    /// proportional to the estimated module size. Reed-Solomon still validates
+    /// the result, so this only rescues symbols, it does not invent them.
+    ///
+    /// Not part of the upstream C++ port. See <https://github.com/rxing-core/rxing/issues/128>.
+    fn decode_qr_dilated(
+        binImg: &BitMatrix,
+        fpSet: &FinderPatternSet,
+        dimension: u32,
+        hints: &DecodeHints,
+        cache: &mut Vec<(u32, BitMatrix)>,
+    ) -> Option<(DecoderResult<bool>, Vec<Point>)> {
+        if dimension <= 7 {
+            return None;
+        }
+        // Finder centres are (dimension - 7) modules apart.
+        let module_size =
+            fpSet.tl.distance(fpSet.tr).max(fpSet.tl.distance(fpSet.bl)) / (dimension - 7) as f32;
+
+        let mut last_radius = 0;
+        for fraction in DILATION_MODULE_FRACTIONS {
+            let radius = (module_size * fraction).round() as u32;
+            if radius == 0 || radius == last_radius {
+                continue;
+            }
+            last_radius = radius;
+
+            let idx = match cache.iter().position(|(r, _)| *r == radius) {
+                Some(idx) => idx,
+                None => {
+                    cache.push((radius, dilate(binImg, radius)?));
+                    cache.len() - 1
+                }
+            };
+            let dilated = &cache[idx].1;
+
+            let Ok(detectorResult) = SampleQR(dilated, fpSet) else {
+                continue;
+            };
+            if let Some(result) = Self::decode_qr_bits(detectorResult.getBits(), hints) {
+                return Some((result, detectorResult.getPoints().to_vec()));
+            }
+        }
+        None
+    }
+
     fn decode_set_number_with_hints<B: crate::Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
@@ -221,6 +284,8 @@ impl QrReader {
         if check_qr {
             // if (_hints.hasFormat(BarcodeFormat::QRCode)) {
             let allFPSets = GenerateFinderPatternSets(&mut allFPs);
+            // Lazily built dilated copies of `binImg`, keyed by radius (see `decode_qr_dilated`).
+            let mut dilated_cache: Vec<(u32, BitMatrix)> = Vec::new();
             for fpSet in allFPSets {
                 // for (const auto& fpSet : allFPSets) {
                 if usedFPs.contains(&fpSet.bl)
@@ -235,26 +300,36 @@ impl QrReader {
                 let detectorResult = SampleQR(binImg, &fpSet);
                 if let Ok(detectorResult) = detectorResult {
                     // if (detectorResult.is_ok()) {
-                    let decoderResult = Decode(detectorResult.getBits())
-                        .map(|r| r.withCharacterSetHint(hints.CharacterSet.clone()));
-                    let position = detectorResult.getPoints();
-                    if let Ok(decoderResult) = decoderResult {
-                        if decoderResult.isValid() {
-                            usedFPs.push(fpSet.bl);
-                            usedFPs.push(fpSet.tl);
-                            usedFPs.push(fpSet.tr);
-                        }
-
-                        if decoderResult.isValid() {
-                            results.push(RXingResult::with_decoder_result(
-                                decoderResult,
-                                position,
-                                BarcodeFormat::QR_CODE,
-                            ));
-
-                            if maxSymbols != 0 && (results.len() as u32) == maxSymbols {
-                                break;
+                    let decoded = Self::decode_qr_bits(detectorResult.getBits(), hints)
+                        .map(|r| (r, detectorResult.getPoints().to_vec()))
+                        .or_else(|| {
+                            // Not part of the C++ port: stylized QR codes (#128).
+                            if try_harder {
+                                Self::decode_qr_dilated(
+                                    binImg,
+                                    &fpSet,
+                                    detectorResult.getBits().getWidth(),
+                                    hints,
+                                    &mut dilated_cache,
+                                )
+                            } else {
+                                None
                             }
+                        });
+
+                    if let Some((decoderResult, position)) = decoded {
+                        usedFPs.push(fpSet.bl);
+                        usedFPs.push(fpSet.tl);
+                        usedFPs.push(fpSet.tr);
+
+                        results.push(RXingResult::with_decoder_result(
+                            decoderResult,
+                            &position,
+                            BarcodeFormat::QR_CODE,
+                        ));
+
+                        if maxSymbols != 0 && (results.len() as u32) == maxSymbols {
+                            break;
                         }
                     }
                 }
@@ -397,5 +472,71 @@ impl QrReader {
                 BarcodeFormat::QR_CODE
             },
         ))
+    }
+}
+
+/// Dilate set (dark) pixels by `radius` using a square kernel of side `2 * radius + 1`.
+/// Separable (horizontal then vertical sliding window), so O(width * height).
+fn dilate(image: &BitMatrix, radius: u32) -> Option<BitMatrix> {
+    let (width, height) = (image.getWidth(), image.getHeight());
+    let mut horizontal = BitMatrix::new(width, height).ok()?;
+    for y in 0..height {
+        dilate_line(width, radius, |x| image.get(x, y), |x| horizontal.set(x, y));
+    }
+    let mut result = BitMatrix::new(width, height).ok()?;
+    for x in 0..width {
+        dilate_line(
+            height,
+            radius,
+            |y| horizontal.get(x, y),
+            |y| result.set(x, y),
+        );
+    }
+    Some(result)
+}
+
+/// One-dimensional dilation: `set(i)` is called for every `i` that has a set pixel
+/// within `radius` of it, tracked via the last set position seen ahead of `i`.
+fn dilate_line(len: u32, radius: u32, get: impl Fn(u32) -> bool, mut set: impl FnMut(u32)) {
+    let mut last_set: Option<u32> = None;
+    // Scan ahead by `radius` so `last_set` covers [i - radius, i + radius].
+    for lead in 0..len + radius {
+        if lead < len && get(lead) {
+            last_set = Some(lead);
+        }
+        let Some(i) = lead.checked_sub(radius) else {
+            continue;
+        };
+        if last_set.is_some_and(|s| s + radius >= i) {
+            set(i);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::dilate;
+    use crate::common::BitMatrix;
+
+    #[test]
+    fn dilate_square_kernel() {
+        let mut m = BitMatrix::new(9, 7).unwrap();
+        m.set(4, 3);
+        m.set(0, 0);
+        let d = dilate(&m, 2).unwrap();
+        for y in 0u32..7 {
+            for x in 0u32..9 {
+                let expected = (x.abs_diff(4) <= 2 && y.abs_diff(3) <= 2) || (x <= 2 && y <= 2);
+                assert_eq!(d.get(x, y), expected, "pixel ({x},{y})");
+            }
+        }
+    }
+
+    #[test]
+    fn dilate_radius_zero_is_identity() {
+        let mut m = BitMatrix::new(5, 5).unwrap();
+        m.set(1, 2);
+        m.set(3, 4);
+        assert_eq!(dilate(&m, 0).unwrap(), m);
     }
 }
