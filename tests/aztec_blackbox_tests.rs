@@ -54,10 +54,10 @@ fn aztec_black_box2_test_case() {
         BarcodeFormat::AZTEC,
     );
     // super(, new AztecReader(), BarcodeFormat.AZTEC);
-    tester.add_test(5, 5, 0.0);
-    tester.add_test(4, 4, 90.0);
-    tester.add_test(6, 6, 180.0);
-    tester.add_test(3, 3, 270.0);
+    tester.add_test(22, 22, 0.0);
+    tester.add_test(22, 22, 90.0);
+    tester.add_test(22, 22, 180.0);
+    tester.add_test(22, 22, 270.0);
 
     tester.test_black_box();
 }

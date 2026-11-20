@@ -95,19 +95,20 @@ impl<'a> Detector<'_> {
         // otherwise this falls back to the classic algorithm, so nothing that currently detects
         // can regress.
         if let Some(m) = zxing_cpp_detector::locate_bullseye(self.image, p_center) {
-            self.compact = m.compact;
-            self.nb_center_layers = m.nb_center_layers;
-
-            let mut corners = m.corners.0;
-            if is_mirror {
-                corners.swap(0, 2);
+            if let Some(result) = self.try_bullseye_corners(m.corners.0, m.compact, is_mirror) {
+                return Ok(result);
             }
+        }
 
-            if self.extractParameters(&corners).is_ok() {
-                if let Ok(result) = self.build_result(&corners) {
-                    if decoder::decode(&result).is_ok() {
-                        return Ok(result);
-                    }
+        // Scan the whole image for bullseye candidates and fit each one's actual (rotated /
+        // perspective-distorted) ring corners, like zxing-cpp's AZDetector does. Again, only
+        // trusted if the data decodes.
+        for candidate in zxing_cpp_detector::find_bullseye_candidates(self.image) {
+            for (compact, corners) in
+                zxing_cpp_detector::fitted_bullseye_corners(self.image, &candidate)
+            {
+                if let Some(result) = self.try_bullseye_corners(corners, compact, is_mirror) {
+                    return Ok(result);
                 }
             }
         }
@@ -118,6 +119,26 @@ impl<'a> Detector<'_> {
         }
         self.extractParameters(&bulls_eye_corners)?;
         self.build_result(&bulls_eye_corners)
+    }
+
+    /// Tries the given bull's eye corners ([topRight, bottomRight, bottomLeft, topLeft], the
+    /// module centers just outside the bull's eye) and returns the detector result only if the
+    /// symbol it leads to actually decodes.
+    fn try_bullseye_corners(
+        &mut self,
+        mut corners: [Point; 4],
+        compact: bool,
+        is_mirror: bool,
+    ) -> Option<AztecDetectorRXingResult> {
+        self.compact = compact;
+        self.nb_center_layers = if compact { 5 } else { 7 };
+        if is_mirror {
+            corners.swap(0, 2);
+        }
+        self.extractParameters(&corners).ok()?;
+        let result = self.build_result(&corners).ok()?;
+        decoder::decode(&result).ok()?;
+        Some(result)
     }
 
     /// Samples the grid (step 4) and gets the corners of the matrix (step 5), given
