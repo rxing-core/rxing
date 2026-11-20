@@ -432,6 +432,9 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
                     RXingResultMetadataType::FILTERED_CLOSED => {
                         RXingResultMetadataValue::FilteredClosed(v.parse().unwrap())
                     }
+                    RXingResultMetadataType::READER_INIT => {
+                        RXingResultMetadataValue::ReaderInit(v.parse().unwrap_or_default())
+                    }
                     RXingResultMetadataType::FILTERED_RESOLUTION => {
                         // RXingResultMetadataValue::FilteredResolution(v.parse().unwrap())
                         let arr: Box<[usize]> = v
@@ -752,7 +755,7 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
                     &original.to_luma8(),
                     radians,
                     Interpolation::Nearest,
-                    Luma([u8::MAX / 2; 1]),
+                    Border::Constant(Luma([u8::MAX / 2; 1])),
                 );
 
                 DynamicImage::from(i)

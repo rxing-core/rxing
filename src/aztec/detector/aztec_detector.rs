@@ -51,6 +51,7 @@ pub struct Detector<'a> {
     nb_data_blocks: u32,
     nb_center_layers: u32,
     shift: u32,
+    reader_init: bool,
 }
 
 impl<'a> Detector<'_> {
@@ -62,6 +63,7 @@ impl<'a> Detector<'_> {
             nb_data_blocks: 0,
             nb_center_layers: 0,
             shift: 0,
+            reader_init: false,
         }
     }
 
@@ -93,19 +95,20 @@ impl<'a> Detector<'_> {
         // otherwise this falls back to the classic algorithm, so nothing that currently detects
         // can regress.
         if let Some(m) = zxing_cpp_detector::locate_bullseye(self.image, p_center) {
-            self.compact = m.compact;
-            self.nb_center_layers = m.nb_center_layers;
-
-            let mut corners = m.corners.0;
-            if is_mirror {
-                corners.swap(0, 2);
+            if let Some(result) = self.try_bullseye_corners(m.corners.0, m.compact, is_mirror) {
+                return Ok(result);
             }
+        }
 
-            if self.extractParameters(&corners).is_ok() {
-                if let Ok(result) = self.build_result(&corners) {
-                    if decoder::decode(&result).is_ok() {
-                        return Ok(result);
-                    }
+        // Scan the whole image for bullseye candidates and fit each one's actual (rotated /
+        // perspective-distorted) ring corners, like zxing-cpp's AZDetector does. Again, only
+        // trusted if the data decodes.
+        for candidate in zxing_cpp_detector::find_bullseye_candidates(self.image) {
+            for (compact, corners) in
+                zxing_cpp_detector::fitted_bullseye_corners(self.image, &candidate)
+            {
+                if let Some(result) = self.try_bullseye_corners(corners, compact, is_mirror) {
+                    return Ok(result);
                 }
             }
         }
@@ -116,6 +119,26 @@ impl<'a> Detector<'_> {
         }
         self.extractParameters(&bulls_eye_corners)?;
         self.build_result(&bulls_eye_corners)
+    }
+
+    /// Tries the given bull's eye corners ([topRight, bottomRight, bottomLeft, topLeft], the
+    /// module centers just outside the bull's eye) and returns the detector result only if the
+    /// symbol it leads to actually decodes.
+    fn try_bullseye_corners(
+        &mut self,
+        mut corners: [Point; 4],
+        compact: bool,
+        is_mirror: bool,
+    ) -> Option<AztecDetectorRXingResult> {
+        self.compact = compact;
+        self.nb_center_layers = if compact { 5 } else { 7 };
+        if is_mirror {
+            corners.swap(0, 2);
+        }
+        self.extractParameters(&corners).ok()?;
+        let result = self.build_result(&corners).ok()?;
+        decoder::decode(&result).ok()?;
+        Some(result)
     }
 
     /// Samples the grid (step 4) and gets the corners of the matrix (step 5), given
@@ -139,6 +162,7 @@ impl<'a> Detector<'_> {
             self.compact,
             self.nb_data_blocks,
             self.nb_layers,
+            self.reader_init,
         ))
     }
 
@@ -189,15 +213,28 @@ impl<'a> Detector<'_> {
 
         // Corrects parameter data using RS.  Returns just the data portion
         // without the error correction.
-        let corrected_data = Self::get_corrected_parameter_data(parameter_data, self.compact)?;
+        let mut corrected_data = Self::get_corrected_parameter_data(parameter_data, self.compact)?;
 
+        // Reader initialization symbols set the top bit of the data-block field. A real
+        // data-block count can never reach that bit for these sizes (a 1-layer compact
+        // symbol holds at most 17 codewords; a full symbol of <= 22 layers far fewer than
+        // 1024), so clear it rather than reading it as part of the count.
         if self.compact {
             // 8 bits:  2 bits layers and 6 bits data blocks
             self.nb_layers = (corrected_data >> 6) + 1;
+            // Assign (not just set) the flag: the same Detector runs several attempts.
+            self.reader_init = self.nb_layers == 1 && corrected_data & 0x20 != 0;
+            if self.reader_init {
+                corrected_data &= !0x20;
+            }
             self.nb_data_blocks = (corrected_data & 0x3F) + 1;
         } else {
             // 16 bits:  5 bits layers and 11 bits data blocks
             self.nb_layers = (corrected_data >> 11) + 1;
+            self.reader_init = self.nb_layers <= 22 && corrected_data & 0x400 != 0;
+            if self.reader_init {
+                corrected_data &= !0x400;
+            }
             self.nb_data_blocks = (corrected_data & 0x7FF) + 1;
         }
 

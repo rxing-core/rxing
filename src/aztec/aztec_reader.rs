@@ -83,6 +83,7 @@ impl AztecReader {
         };
 
         let points = detectorRXingResult.getPoints();
+        let reader_init = detectorRXingResult.isReaderInit();
         let decoderRXingResult: DecoderRXingResult = decoder::decode(&detectorRXingResult)?;
         // } catch (NotFoundException e) {
         //   notFoundException = e;
@@ -134,6 +135,12 @@ impl AztecReader {
             result.putMetadata(
                 RXingResultMetadataType::ERROR_CORRECTION_LEVEL,
                 RXingResultMetadataValue::ErrorCorrectionLevel(ecLevel.to_owned()),
+            );
+        }
+        if reader_init {
+            result.putMetadata(
+                RXingResultMetadataType::READER_INIT,
+                RXingResultMetadataValue::ReaderInit(true),
             );
         }
         result.putMetadata(

@@ -17,7 +17,7 @@
 use std::borrow::Cow;
 
 use image::{DynamicImage, ImageBuffer, Luma};
-use imageproc::geometric_transformations::{Interpolation, rotate_about_center};
+use imageproc::geometric_transformations::{Border, Interpolation, rotate_about_center};
 
 use crate::common::Result;
 use crate::{Luma8LuminanceSource, LuminanceSource};
@@ -98,11 +98,12 @@ impl LuminanceSource for BufferedImageLuminanceSource {
             .ok_or_else(|| {
                 crate::Exceptions::illegal_argument_with("matrix does not match its dimensions")
             })?;
+
         let rotated = rotate_about_center(
             &buffer,
             MINUS_45_IN_RADIANS,
             Interpolation::Nearest,
-            Luma([u8::MAX / 2; 1]),
+            Border::Constant(Luma([u8::MAX / 2; 1])),
         );
         Ok(Self {
             source: Luma8LuminanceSource::new(rotated.into_raw(), width, height)?,

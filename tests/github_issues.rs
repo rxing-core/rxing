@@ -842,3 +842,27 @@ fn issue_62_rmqr_r7() {
     );
     assert_eq!(result.getText(), "This is ");
 }
+
+/// <https://github.com/rxing-core/rxing/issues/128>
+///
+/// Artistic QR code whose dark modules are drawn as thin wave strokes and small
+/// dots, much smaller than the module cell. Detection succeeds, but centre-point
+/// sampling reads ~29% of dark modules as light, exceeding EC level H capacity.
+/// With `TryHarder`, the QR reader retries sampling from a dilated bit matrix.
+#[cfg(feature = "image")]
+#[test]
+fn issue_128_stylized_qr() {
+    use rxing::{BarcodeFormat, DecodeHintValue, DecodeHints};
+
+    const FILE_NAME: &str = "test_resources/blackbox/github_issue_cases/stylized_qr_issue_128.jpg";
+
+    let mut hints = DecodeHints::default().with(DecodeHintValue::TryHarder(true));
+    let result = rxing::helpers::detect_in_file_with_hints(FILE_NAME, None, &mut hints)
+        .expect("stylized QR code must decode with TryHarder");
+
+    assert_eq!(result.getBarcodeFormat(), &BarcodeFormat::QR_CODE);
+    assert_eq!(
+        result.getText(),
+        "WIFI:T:WPA;S:The Workshop Coffee;P:workshop27;;"
+    );
+}
