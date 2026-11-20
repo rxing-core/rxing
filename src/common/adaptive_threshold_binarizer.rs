@@ -39,7 +39,7 @@ impl<LS: LuminanceSource> AdaptiveThresholdBinarizer<LS> {
             buff
         };
 
-        let filtered_iamge = imageproc::contrast::adaptive_threshold(&image_buffer, self.radius);
+        let filtered_iamge = imageproc::contrast::adaptive_threshold(&image_buffer, self.radius, 0);
 
         let dynamic_filtered = DynamicImage::from(filtered_iamge);
 

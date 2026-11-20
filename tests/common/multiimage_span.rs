@@ -752,7 +752,7 @@ impl<T: MultipleBarcodeReader + Reader> MultiImageSpanAbstractBlackBoxTestCase<T
                     &original.to_luma8(),
                     radians,
                     Interpolation::Nearest,
-                    Luma([u8::MAX / 2; 1]),
+                    Border::Constant(Luma([u8::MAX / 2; 1])),
                 );
 
                 DynamicImage::from(i)
