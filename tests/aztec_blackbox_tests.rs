@@ -32,10 +32,10 @@ fn aztec_black_box1_test_case() {
     );
 
     // super("src/test/resources/blackbox/aztec-1", AztecReader::new(), BarcodeFormat::AZTEC);
-    tester.add_test(14, 14, 0.0);
-    tester.add_test(14, 14, 90.0);
-    tester.add_test(14, 14, 180.0);
-    tester.add_test(14, 14, 270.0);
+    tester.add_test(16, 16, 0.0);
+    tester.add_test(16, 16, 90.0);
+    tester.add_test(16, 16, 180.0);
+    tester.add_test(16, 16, 270.0);
 
     tester.test_black_box();
 }
@@ -79,4 +79,38 @@ fn aztec_black_box3_test_case() {
     tester.add_test(1, 1, 0.0);
 
     tester.test_black_box();
+}
+
+/// Reader initialization symbols decode and are flagged in the result metadata; ordinary
+/// symbols are not.
+#[cfg(feature = "image_formats")]
+#[test]
+fn aztec_reader_init_metadata() {
+    use rxing::{RXingResultMetadataType, RXingResultMetadataValue};
+
+    for file in ["reader-init.png", "reader-init-compact.png"] {
+        let path = format!("test_resources/blackbox/aztec-1/{file}");
+        let result = rxing::helpers::detect_in_file(&path, Some(BarcodeFormat::AZTEC))
+            .unwrap_or_else(|e| panic!("{file} should decode: {e:?}"));
+        assert_eq!(result.getText(), "init-test", "{file}");
+        assert_eq!(
+            result
+                .getRXingResultMetadata()
+                .get(&RXingResultMetadataType::READER_INIT),
+            Some(&RXingResultMetadataValue::ReaderInit(true)),
+            "{file} should be flagged as reader init"
+        );
+    }
+
+    let result = rxing::helpers::detect_in_file(
+        "test_resources/blackbox/aztec-1/hello.png",
+        Some(BarcodeFormat::AZTEC),
+    )
+    .expect("hello.png should decode");
+    assert!(
+        !result
+            .getRXingResultMetadata()
+            .contains_key(&RXingResultMetadataType::READER_INIT),
+        "an ordinary symbol must not be flagged as reader init"
+    );
 }

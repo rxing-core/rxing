@@ -680,6 +680,7 @@ fn testEncodeDecode(data: &str, compact: bool, layers: u32) {
         aztec.isCompact(),
         aztec.getCodeWords(),
         aztec.getLayers(),
+        false,
     );
     let mut res = decoder::decode(&r).expect("decode ok");
     assert_eq!(data, res.getText());
@@ -707,6 +708,7 @@ fn testEncodeDecode(data: &str, compact: bool, layers: u32) {
         aztec.isCompact(),
         aztec.getCodeWords(),
         aztec.getLayers(),
+        false,
     );
     res = decoder::decode(&r).expect("decode should work");
     assert_eq!(data, res.getText());
@@ -759,6 +761,7 @@ fn testWriter(
         aztec.isCompact(),
         aztec.getCodeWords(),
         aztec.getLayers(),
+        false,
     );
 
     let mut res = decoder::decode(&r).expect("should decode");
@@ -788,6 +791,7 @@ fn testWriter(
         aztec.isCompact(),
         aztec.getCodeWords(),
         aztec.getLayers(),
+        false,
     );
     res = decoder::decode(&r).expect("must decode");
     assert_eq!(data, res.getText());
