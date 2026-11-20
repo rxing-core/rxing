@@ -267,15 +267,13 @@ pub fn find_bullseye_candidates(image: &BitMatrix) -> Vec<BullseyeCandidate> {
                     .iter()
                     .rev()
                     .any(|old| Point::distance(p, old.p) < old.size as f32 / 2.0);
-                if !known {
-                    if let Some(c) = locate_aztec_center(image, p, pattern_width) {
-                        if !res
-                            .iter()
-                            .any(|old| Point::distance(c.p, old.p) < old.size as f32 / 2.0)
-                        {
-                            res.push(c);
-                        }
-                    }
+                if !known
+                    && let Some(c) = locate_aztec_center(image, p, pattern_width)
+                    && !res
+                        .iter()
+                        .any(|old| Point::distance(c.p, old.p) < old.size as f32 / 2.0)
+                {
+                    res.push(c);
                 }
             }
             x0 += runs[i] as u32 + runs[i + 1] as u32;

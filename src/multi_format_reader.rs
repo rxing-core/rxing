@@ -218,10 +218,11 @@ impl MultiFormatReader {
             }
 
             #[cfg(feature = "oned")]
-            if one_d && self.try_harder {
-                if let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints) {
-                    return Ok(res);
-                }
+            if one_d
+                && self.try_harder
+                && let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints)
+            {
+                return Ok(res);
             }
         } else {
             if !self.try_harder {

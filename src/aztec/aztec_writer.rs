@@ -53,10 +53,10 @@ impl Writer for AztecWriter {
         let mut charset = None; // Do not add any ECI code by default
         let mut ecc_percent = aztec_encoder::DEFAULT_EC_PERCENT;
         let mut layers = aztec_encoder::DEFAULT_AZTEC_LAYERS;
-        if let Some(cset_name) = &hints.CharacterSet {
-            if cset_name.to_lowercase() != "iso-8859-1" {
-                charset = CharacterSet::get_character_set_by_name(cset_name);
-            }
+        if let Some(cset_name) = &hints.CharacterSet
+            && cset_name.to_lowercase() != "iso-8859-1"
+        {
+            charset = CharacterSet::get_character_set_by_name(cset_name);
         }
         if let Some(ecc_level) = &hints.ErrorCorrection {
             ecc_percent = ecc_level.parse().unwrap_or(23);

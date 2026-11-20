@@ -125,16 +125,16 @@ impl PDF417Reader {
                 ),
             );
 
-            if let Some(pdf417RXingResultMetadata) = decoderRXingResult.getOther() {
-                if pdf417RXingResultMetadata.is::<PDF417RXingResultMetadata>() {
-                    let data = RXingResultMetadataValue::Pdf417ExtraMetadata(
-                        pdf417RXingResultMetadata
-                            .clone()
-                            .downcast::<PDF417RXingResultMetadata>()
-                            .map_err(|_| Exceptions::ILLEGAL_STATE)?,
-                    );
-                    result.putMetadata(RXingResultMetadataType::PDF417_EXTRA_METADATA, data);
-                }
+            if let Some(pdf417RXingResultMetadata) = decoderRXingResult.getOther()
+                && pdf417RXingResultMetadata.is::<PDF417RXingResultMetadata>()
+            {
+                let data = RXingResultMetadataValue::Pdf417ExtraMetadata(
+                    pdf417RXingResultMetadata
+                        .clone()
+                        .downcast::<PDF417RXingResultMetadata>()
+                        .map_err(|_| Exceptions::ILLEGAL_STATE)?,
+                );
+                result.putMetadata(RXingResultMetadataType::PDF417_EXTRA_METADATA, data);
             }
             // PDF417RXingResultMetadata pdf417RXingResultMetadata = (PDF417RXingResultMetadata) decoderRXingResult.getOther();
 

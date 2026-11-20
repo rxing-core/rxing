@@ -207,10 +207,10 @@ impl MinimalEncoder {
     }
 
     pub fn isNumeric(c: &str) -> bool {
-        if c.len() == 1 {
-            if let Some(ch) = c.chars().next() {
-                return ch.is_ascii_digit();
-            }
+        if c.len() == 1
+            && let Some(ch) = c.chars().next()
+        {
+            return ch.is_ascii_digit();
         }
         false
     }
@@ -220,10 +220,10 @@ impl MinimalEncoder {
     }
 
     pub fn isAlphanumeric(c: &str) -> bool {
-        if c.len() == 1 {
-            if let Some(ch) = c.chars().next() {
-                return qrcode_encoder::getAlphanumericCode(ch as u32) != -1;
-            }
+        if c.len() == 1
+            && let Some(ch) = c.chars().next()
+        {
+            return qrcode_encoder::getAlphanumericCode(ch as u32) != -1;
         }
         false
     }
@@ -576,12 +576,12 @@ impl MinimalEncoder {
         let mut minimalSize = u32::MAX;
         for j in 0..self.encoders.len() {
             for k in 0..4 {
-                if let Some(edge) = &edges[inputLength][j][k] {
-                    if edge.cachedTotalSize < minimalSize {
-                        minimalSize = edge.cachedTotalSize;
-                        minimalJ = Some(j);
-                        minimalK = Some(k);
-                    }
+                if let Some(edge) = &edges[inputLength][j][k]
+                    && edge.cachedTotalSize < minimalSize
+                {
+                    minimalSize = edge.cachedTotalSize;
+                    minimalJ = Some(j);
+                    minimalK = Some(k);
                 }
             }
         }
@@ -754,19 +754,20 @@ impl RXingResultList {
         // prepend FNC1 if needed. If the bits contain an ECI then the FNC1 must be preceeded by an ECI.
         // If there is no ECI at the beginning then we put an ECI to the default charset (ISO-8859-1)
         if isGS1 {
-            if let Some(first) = list.first() {
-                if first.mode != Mode::ECI && containsECI {
-                    // prepend a default character set ECI
-                    list.push(RXingResultNode::new(
-                        Mode::ECI,
-                        0,
-                        0,
-                        0,
-                        encoders.clone(),
-                        stringToEncode.clone(),
-                        version,
-                    ));
-                }
+            if let Some(first) = list.first()
+                && first.mode != Mode::ECI
+                && containsECI
+            {
+                // prepend a default character set ECI
+                list.push(RXingResultNode::new(
+                    Mode::ECI,
+                    0,
+                    0,
+                    0,
+                    encoders.clone(),
+                    stringToEncode.clone(),
+                    version,
+                ));
             }
 
             if let Some(first) = list.first() {

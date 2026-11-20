@@ -151,10 +151,10 @@ impl OneDReader for RSSExpandedReader {
         // So lets try twice
         self.pairs.clear();
         self.startFromEven = false;
-        if let Ok(decoded_two_pairs) = self.decodeRow2pairs(rowNumber, row) {
-            if let Ok(possible_result) = Self::constructRXingResult(&decoded_two_pairs) {
-                return Ok(possible_result);
-            }
+        if let Ok(decoded_two_pairs) = self.decodeRow2pairs(rowNumber, row)
+            && let Ok(possible_result) = Self::constructRXingResult(&decoded_two_pairs)
+        {
+            return Ok(possible_result);
         }
 
         self.pairs.clear();
@@ -622,7 +622,7 @@ impl RSSExpandedReader {
         previousPairs: &[ExpandedPair],
         rowNumber: u32,
     ) -> Result<ExpandedPair> {
-        let mut isOddPattern = previousPairs.len() % 2 == 0;
+        let mut isOddPattern = previousPairs.len().is_multiple_of(2);
         if self.startFromEven {
             isOddPattern = !isOddPattern;
         }
@@ -705,7 +705,7 @@ impl RSSExpandedReader {
                 .ok_or(Exceptions::ILLEGAL_STATE)?
                 .getStartEnd()[1] as i32;
         }
-        let mut searchingEvenPair = previousPairs.len() % 2 != 0;
+        let mut searchingEvenPair = !previousPairs.len().is_multiple_of(2);
         if self.startFromEven {
             searchingEvenPair = !searchingEvenPair;
         }

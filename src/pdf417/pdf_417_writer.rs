@@ -69,10 +69,10 @@ impl Writer for PDF417Writer {
         let mut autoECI = false;
 
         // if !hints.is_empty() {
-        if let Some(compact) = &hints.Pdf417Compact {
-            if let Ok(res) = compact.parse::<bool>() {
-                encoder.setCompact(res);
-            }
+        if let Some(compact) = &hints.Pdf417Compact
+            && let Ok(res) = compact.parse::<bool>()
+        {
+            encoder.setCompact(res);
         }
         if let Some(compaction) = &hints.Pdf417Compaction {
             encoder.setCompaction(compaction.try_into()?);
@@ -85,23 +85,23 @@ impl Writer for PDF417Writer {
                 dimensions.getMinRows() as u32,
             );
         }
-        if let Some(m1) = &hints.Margin {
-            if let Ok(m) = m1.parse::<u32>() {
-                margin = m;
-            }
+        if let Some(m1) = &hints.Margin
+            && let Ok(m) = m1.parse::<u32>()
+        {
+            margin = m;
         }
-        if let Some(ec) = &hints.ErrorCorrection {
-            if let Ok(ec_parsed) = ec.parse::<u32>() {
-                errorCorrectionLevel = ec_parsed;
-            }
+        if let Some(ec) = &hints.ErrorCorrection
+            && let Ok(ec_parsed) = ec.parse::<u32>()
+        {
+            errorCorrectionLevel = ec_parsed;
         }
         if let Some(cs) = &hints.CharacterSet {
             encoder.setEncoding(CharacterSet::get_character_set_by_name(cs));
         }
-        if let Some(auto_eci_str) = &hints.Pdf417AutoEci {
-            if let Ok(auto_eci_parsed) = auto_eci_str.parse::<bool>() {
-                autoECI = auto_eci_parsed;
-            }
+        if let Some(auto_eci_str) = &hints.Pdf417AutoEci
+            && let Ok(auto_eci_parsed) = auto_eci_str.parse::<bool>()
+        {
+            autoECI = auto_eci_parsed;
         }
         // }
 

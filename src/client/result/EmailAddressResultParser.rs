@@ -74,15 +74,15 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
         let mut body = String::default();
         if let Some(nv) = nameValues {
             // if (nameValues != null) {
-            if tos.is_empty() {
-                if let Some(tosString) = nv.get("to") {
-                    tos = tosString.split(",").map(|s| s.to_owned()).collect();
-                    // tos = COMMA.split(tosString).map(|s| s.to_owned()).collect();
-                }
-                // if tosString != null {
-                //   tos = COMMA.split(tosString);
-                // }
+            if tos.is_empty()
+                && let Some(tosString) = nv.get("to")
+            {
+                tos = tosString.split(",").map(|s| s.to_owned()).collect();
+                // tos = COMMA.split(tosString).map(|s| s.to_owned()).collect();
             }
+            // if tosString != null {
+            //   tos = COMMA.split(tosString);
+            // }
             if let Some(ccString) = nv.get("cc") {
                 ccs = ccString.split(",").map(|s| s.to_owned()).collect();
                 // ccs = COMMA.split(ccString).map(|s| s.to_owned()).collect();

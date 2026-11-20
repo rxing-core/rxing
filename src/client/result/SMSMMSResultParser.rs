@@ -49,16 +49,16 @@ pub fn parse(result: &RXingResult) -> Option<ParsedClientResult> {
     let mut querySyntax = false;
 
     // Check up front if this is a URI syntax string with query arguments
-    if let Some(name_value_pairs) = ResultParser::parseNameValuePairs(&raw_text) {
-        if !name_value_pairs.is_empty() {
-            subject = String::from(
-                name_value_pairs
-                    .get("subject")
-                    .unwrap_or(&String::default()),
-            );
-            body = String::from(name_value_pairs.get("body").unwrap_or(&String::default()));
-            querySyntax = true;
-        }
+    if let Some(name_value_pairs) = ResultParser::parseNameValuePairs(&raw_text)
+        && !name_value_pairs.is_empty()
+    {
+        subject = String::from(
+            name_value_pairs
+                .get("subject")
+                .unwrap_or(&String::default()),
+        );
+        body = String::from(name_value_pairs.get("body").unwrap_or(&String::default()));
+        querySyntax = true;
     }
 
     // Drop sms, query portion

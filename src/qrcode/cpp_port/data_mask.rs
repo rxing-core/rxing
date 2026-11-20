@@ -27,14 +27,14 @@ pub fn GetDataMaskBit(maskIndex: u32, x: u32, y: u32, isMicro: Option<bool>) -> 
     }
 
     match maskIndex {
-        0 => return Ok((y + x) % 2 == 0),
-        1 => return Ok(y % 2 == 0),
-        2 => return Ok(x % 3 == 0),
-        3 => return Ok((y + x) % 3 == 0),
-        4 => return Ok(((y / 2) + (x / 3)) % 2 == 0),
-        5 => return Ok((y * x) % 6 == 0),
+        0 => return Ok((y + x).is_multiple_of(2)),
+        1 => return Ok(y.is_multiple_of(2)),
+        2 => return Ok(x.is_multiple_of(3)),
+        3 => return Ok((y + x).is_multiple_of(3)),
+        4 => return Ok(((y / 2) + (x / 3)).is_multiple_of(2)),
+        5 => return Ok((y * x).is_multiple_of(6)),
         6 => return Ok(((y * x) % 6) < 3),
-        7 => return Ok((y + x + ((y * x) % 3)) % 2 == 0),
+        7 => return Ok((y + x + ((y * x) % 3)).is_multiple_of(2)),
         _ => {}
     }
 

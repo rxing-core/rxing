@@ -1005,7 +1005,7 @@ impl Edge {
     }
 
     pub fn getX12Words(&self) -> Result<Vec<u8>> {
-        assert!(self.characterLength % 3 == 0);
+        assert!(self.characterLength.is_multiple_of(3));
         let mut result = vec![0u8; self.characterLength as usize / 3 * 2];
         let mut i = 0;
         while i < result.len() {
@@ -1039,11 +1039,11 @@ impl Edge {
     }
 
     fn getC40Value(c40: bool, setIndex: u32, c: char, fnc1: Option<char>) -> u32 {
-        if let Some(fnc1_char) = fnc1 {
-            if c == fnc1_char {
-                assert!(setIndex == 2);
-                return 27;
-            }
+        if let Some(fnc1_char) = fnc1
+            && c == fnc1_char
+        {
+            assert!(setIndex == 2);
+            return 27;
         }
         if c40 {
             let c = c as u32;
@@ -1132,9 +1132,9 @@ impl Edge {
             }
         }
 
-        if (c40Values.len() % 3) != 0 {
+        if !c40Values.len().is_multiple_of(3) {
             assert!(
-                (c40Values.len() - 2) % 3 == 0
+                (c40Values.len() - 2).is_multiple_of(3)
                     && fromPosition + self.characterLength as usize == self.input.length()
             );
             c40Values.push(0); // pad with 0 (Shift 1)

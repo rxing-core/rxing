@@ -216,7 +216,7 @@ impl BitArray {
      */
     pub fn setBulk(&mut self, i: usize, newBits: BaseType) {
         self.reversed = None;
-        let bits = if i % BASE_BITS != 0 {
+        let bits = if !i.is_multiple_of(BASE_BITS) {
             newBits << i
         } else {
             newBits

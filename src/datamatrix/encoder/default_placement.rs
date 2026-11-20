@@ -85,7 +85,7 @@ impl DefaultPlacement {
                 self.corner1(pos)?;
                 pos += 1;
             }
-            if (row == self.numrows as isize - 2) && (col == 0) && ((self.numcols % 4) != 0) {
+            if (row == self.numrows as isize - 2) && (col == 0) && !self.numcols.is_multiple_of(4) {
                 self.corner2(pos)?;
                 pos += 1;
             }
@@ -93,7 +93,7 @@ impl DefaultPlacement {
                 self.corner3(pos)?;
                 pos += 1;
             }
-            if (row == self.numrows as isize + 4) && (col == 2) && ((self.numcols % 8) == 0) {
+            if (row == self.numrows as isize + 4) && (col == 2) && self.numcols.is_multiple_of(8) {
                 self.corner4(pos)?;
                 pos += 1;
             }

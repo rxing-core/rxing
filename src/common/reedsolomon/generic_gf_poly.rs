@@ -295,16 +295,16 @@ impl fmt::Display for GenericGFPoly {
                 } else if !result.is_empty() {
                     result.push_str(" + ");
                 }
-                if degree == 0 || coefficient != 1 {
-                    if let Ok(alpha_power) = self.field.log(coefficient) {
-                        if alpha_power == 0 {
-                            result.push('1');
-                        } else if alpha_power == 1 {
-                            result.push('a');
-                        } else {
-                            result.push_str("a^");
-                            result.push_str(&format!("{alpha_power}"));
-                        }
+                if (degree == 0 || coefficient != 1)
+                    && let Ok(alpha_power) = self.field.log(coefficient)
+                {
+                    if alpha_power == 0 {
+                        result.push('1');
+                    } else if alpha_power == 1 {
+                        result.push('a');
+                    } else {
+                        result.push_str("a^");
+                        result.push_str(&format!("{alpha_power}"));
                     }
                 }
                 if degree != 0 {

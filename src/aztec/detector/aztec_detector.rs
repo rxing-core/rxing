@@ -94,10 +94,10 @@ impl<'a> Detector<'_> {
         // being right), so it's only trusted if the *data* it leads to actually decodes;
         // otherwise this falls back to the classic algorithm, so nothing that currently detects
         // can regress.
-        if let Some(m) = zxing_cpp_detector::locate_bullseye(self.image, p_center) {
-            if let Some(result) = self.try_bullseye_corners(m.corners.0, m.compact, is_mirror) {
-                return Ok(result);
-            }
+        if let Some(m) = zxing_cpp_detector::locate_bullseye(self.image, p_center)
+            && let Some(result) = self.try_bullseye_corners(m.corners.0, m.compact, is_mirror)
+        {
+            return Ok(result);
         }
 
         // Scan the whole image for bullseye candidates and fit each one's actual (rotated /
@@ -411,14 +411,14 @@ impl<'a> Detector<'_> {
         let mut fnd = false;
 
         //Get a white rectangle that can be the border of the matrix in center bull's eye or
-        if let Ok(wrd) = WhiteRectangleDetector::new_from_image(self.image) {
-            if let Ok(cornerPoints) = wrd.detect() {
-                point_a = cornerPoints[0];
-                point_b = cornerPoints[1];
-                point_c = cornerPoints[2];
-                point_d = cornerPoints[3];
-                fnd = true;
-            }
+        if let Ok(wrd) = WhiteRectangleDetector::new_from_image(self.image)
+            && let Ok(cornerPoints) = wrd.detect()
+        {
+            point_a = cornerPoints[0];
+            point_b = cornerPoints[1];
+            point_c = cornerPoints[2];
+            point_d = cornerPoints[3];
+            fnd = true;
         }
 
         // This exception can be in case the initial rectangle is white
@@ -460,14 +460,14 @@ impl<'a> Detector<'_> {
         // This will ensure that we end up with a white rectangle in center bull's eye
         // in order to compute a more accurate center.
         let mut fnd = false;
-        if let Ok(wrd) = WhiteRectangleDetector::new(self.image, 15, cx, cy) {
-            if let Ok(cornerPoints) = wrd.detect() {
-                point_a = cornerPoints[0];
-                point_b = cornerPoints[1];
-                point_c = cornerPoints[2];
-                point_d = cornerPoints[3];
-                fnd = true;
-            }
+        if let Ok(wrd) = WhiteRectangleDetector::new(self.image, 15, cx, cy)
+            && let Ok(cornerPoints) = wrd.detect()
+        {
+            point_a = cornerPoints[0];
+            point_b = cornerPoints[1];
+            point_c = cornerPoints[2];
+            point_d = cornerPoints[3];
+            fnd = true;
         }
         // This exception can be in case the initial rectangle is white
         // In that case we try to expand the rectangle.

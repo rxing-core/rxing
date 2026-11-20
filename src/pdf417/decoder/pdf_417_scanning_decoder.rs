@@ -280,14 +280,12 @@ fn getBarcodeMetadata<T: DetectionRXingResultRowIndicatorColumn>(
         return left_ri_md;
     } else if let Some((leftBarcodeMetadata, rightBarcodeMetadata)) =
         left_ri_md.as_ref().zip(right_ri_md.as_ref())
+        && leftBarcodeMetadata.getColumnCount() != rightBarcodeMetadata.getColumnCount()
+        && leftBarcodeMetadata.getErrorCorrectionLevel()
+            != rightBarcodeMetadata.getErrorCorrectionLevel()
+        && leftBarcodeMetadata.getRowCount() != rightBarcodeMetadata.getRowCount()
     {
-        if leftBarcodeMetadata.getColumnCount() != rightBarcodeMetadata.getColumnCount()
-            && leftBarcodeMetadata.getErrorCorrectionLevel()
-                != rightBarcodeMetadata.getErrorCorrectionLevel()
-            && leftBarcodeMetadata.getRowCount() != rightBarcodeMetadata.getRowCount()
-        {
-            return None;
-        }
+        return None;
     }
 
     left_ri_md

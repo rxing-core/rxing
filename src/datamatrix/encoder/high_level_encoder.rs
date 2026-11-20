@@ -289,10 +289,10 @@ pub fn lookAheadTest(msg: &str, startpos: u32, currentMode: u32) -> usize {
         let endpos = (startpos + 3).min(msg.chars().count() as u32);
         for i in startpos..endpos {
             // for (int i = startpos; i < endpos; i++) {
-            if let Some(c) = msg.chars().nth(i as usize) {
-                if !isNativeX12(c) {
-                    return ASCII_ENCODATION;
-                }
+            if let Some(c) = msg.chars().nth(i as usize)
+                && !isNativeX12(c)
+            {
+                return ASCII_ENCODATION;
             }
         }
     } else if currentMode as usize == EDIFACT_ENCODATION && newMode == EDIFACT_ENCODATION {
@@ -300,10 +300,10 @@ pub fn lookAheadTest(msg: &str, startpos: u32, currentMode: u32) -> usize {
         let endpos = (startpos + 4).min(msg.chars().count() as u32);
         for i in startpos..endpos {
             // for (int i = startpos; i < endpos; i++) {
-            if let Some(c) = msg.chars().nth(i as usize) {
-                if !isNativeEDIFACT(c) {
-                    return ASCII_ENCODATION;
-                }
+            if let Some(c) = msg.chars().nth(i as usize)
+                && !isNativeEDIFACT(c)
+            {
+                return ASCII_ENCODATION;
             }
         }
     }
