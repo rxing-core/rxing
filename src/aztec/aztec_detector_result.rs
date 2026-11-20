@@ -37,6 +37,7 @@ pub struct AztecDetectorRXingResult {
     compact: bool,
     nbDatablocks: u32,
     nbLayers: u32,
+    reader_init: bool,
 }
 
 impl DetectorRXingResult for AztecDetectorRXingResult {
@@ -56,6 +57,7 @@ impl AztecDetectorRXingResult {
         compact: bool,
         nbDatablocks: u32,
         nbLayers: u32,
+        reader_init: bool,
     ) -> Self {
         Self {
             bits,
@@ -63,6 +65,7 @@ impl AztecDetectorRXingResult {
             compact,
             nbDatablocks,
             nbLayers,
+            reader_init,
         }
     }
 
@@ -76,5 +79,9 @@ impl AztecDetectorRXingResult {
 
     pub const fn isCompact(&self) -> bool {
         self.compact
+    }
+
+    pub const fn isReaderInit(&self) -> bool {
+        self.reader_init
     }
 }

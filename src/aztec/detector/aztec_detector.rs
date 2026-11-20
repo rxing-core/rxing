@@ -51,6 +51,7 @@ pub struct Detector<'a> {
     nb_data_blocks: u32,
     nb_center_layers: u32,
     shift: u32,
+    reader_init: bool,
 }
 
 impl<'a> Detector<'_> {
@@ -62,6 +63,7 @@ impl<'a> Detector<'_> {
             nb_data_blocks: 0,
             nb_center_layers: 0,
             shift: 0,
+            reader_init: false,
         }
     }
 
@@ -139,6 +141,7 @@ impl<'a> Detector<'_> {
             self.compact,
             self.nb_data_blocks,
             self.nb_layers,
+            self.reader_init,
         ))
     }
 
@@ -189,15 +192,28 @@ impl<'a> Detector<'_> {
 
         // Corrects parameter data using RS.  Returns just the data portion
         // without the error correction.
-        let corrected_data = Self::get_corrected_parameter_data(parameter_data, self.compact)?;
+        let mut corrected_data = Self::get_corrected_parameter_data(parameter_data, self.compact)?;
 
+        // Reader initialization symbols set the top bit of the data-block field. A real
+        // data-block count can never reach that bit for these sizes (a 1-layer compact
+        // symbol holds at most 17 codewords; a full symbol of <= 22 layers far fewer than
+        // 1024), so clear it rather than reading it as part of the count.
         if self.compact {
             // 8 bits:  2 bits layers and 6 bits data blocks
             self.nb_layers = (corrected_data >> 6) + 1;
+            // Assign (not just set) the flag: the same Detector runs several attempts.
+            self.reader_init = self.nb_layers == 1 && corrected_data & 0x20 != 0;
+            if self.reader_init {
+                corrected_data &= !0x20;
+            }
             self.nb_data_blocks = (corrected_data & 0x3F) + 1;
         } else {
             // 16 bits:  5 bits layers and 11 bits data blocks
             self.nb_layers = (corrected_data >> 11) + 1;
+            self.reader_init = self.nb_layers <= 22 && corrected_data & 0x400 != 0;
+            if self.reader_init {
+                corrected_data &= !0x400;
+            }
             self.nb_data_blocks = (corrected_data & 0x7FF) + 1;
         }
 
