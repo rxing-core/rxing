@@ -122,6 +122,12 @@ pub enum RXingResultMetadataType {
 
     // In a filtered context, what was the final read resolution
     FILTERED_RESOLUTION,
+
+    /**
+     * The symbol is a reader initialization (programming) symbol, meant to configure the
+     * reader rather than carry data for the application. Maps to a bool.
+     */
+    READER_INIT,
 }
 
 impl From<String> for RXingResultMetadataType {
@@ -155,6 +161,7 @@ impl From<String> for RXingResultMetadataType {
             "ISINVERTED" => RXingResultMetadataType::IS_INVERTED,
             "FILTERED_CLOSED" => RXingResultMetadataType::FILTERED_CLOSED,
             "FILTERED_RESOLUTION" => RXingResultMetadataType::FILTERED_RESOLUTION,
+            "READER_INIT" | "READERINIT" => RXingResultMetadataType::READER_INIT,
             _ => RXingResultMetadataType::OTHER,
         }
     }
@@ -250,4 +257,6 @@ pub enum RXingResultMetadataValue {
     FilteredClosed(bool),
 
     FilteredResolution((usize, usize)),
+
+    ReaderInit(bool),
 }
