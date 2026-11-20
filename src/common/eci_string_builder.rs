@@ -281,11 +281,10 @@ impl ECIStringBuilder {
             };
             if let Some(found_encoding) = string_utils::guessCharset(bytes, &hints)
                 .or_else(|| string_utils::guessCharset(bytes, &DecodeHints::default()))
+                && let Ok(found_encoded_str) = found_encoding.decode(bytes)
             {
-                if let Ok(found_encoded_str) = found_encoding.decode(bytes) {
-                    encoded_string.push_str(&found_encoded_str);
-                    not_encoded_yet = false;
-                }
+                encoded_string.push_str(&found_encoded_str);
+                not_encoded_yet = false;
             }
         }
 

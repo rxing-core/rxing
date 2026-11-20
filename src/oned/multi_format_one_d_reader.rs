@@ -57,58 +57,55 @@ impl OneDReader for MultiFormatOneDReader {
         } = self;
 
         if !possible_formats.is_empty() {
-            if possible_formats.contains(&BarcodeFormat::EAN_13)
+            if (possible_formats.contains(&BarcodeFormat::EAN_13)
                 || possible_formats.contains(&BarcodeFormat::UPC_A)
                 || possible_formats.contains(&BarcodeFormat::EAN_8)
-                || possible_formats.contains(&BarcodeFormat::UPC_E)
-            {
-                if let Ok(res) =
+                || possible_formats.contains(&BarcodeFormat::UPC_E))
+                && let Ok(res) =
                     MultiFormatUPCEANReader::new(internal_hints).decode_row(row_number, row, hints)
-                {
-                    return Ok(res);
-                }
+            {
+                return Ok(res);
             }
-            if possible_formats.contains(&BarcodeFormat::CODE_39) {
-                if let Ok(res) = Code39Reader::with_use_check_digit(*use_code_39_check_digit)
+            if possible_formats.contains(&BarcodeFormat::CODE_39)
+                && let Ok(res) = Code39Reader::with_use_check_digit(*use_code_39_check_digit)
                     .decode_row(row_number, row, hints)
-                {
-                    return Ok(res);
-                }
+            {
+                return Ok(res);
             }
-            if possible_formats.contains(&BarcodeFormat::CODE_93) {
-                if let Ok(res) = Code93Reader::default().decode_row(row_number, row, hints) {
-                    return Ok(res);
-                }
+            if possible_formats.contains(&BarcodeFormat::CODE_93)
+                && let Ok(res) = Code93Reader::default().decode_row(row_number, row, hints)
+            {
+                return Ok(res);
             }
-            if possible_formats.contains(&BarcodeFormat::CODE_128) {
-                if let Ok(res) = Code128Reader.decode_row(row_number, row, hints) {
-                    return Ok(res);
-                }
+            if possible_formats.contains(&BarcodeFormat::CODE_128)
+                && let Ok(res) = Code128Reader.decode_row(row_number, row, hints)
+            {
+                return Ok(res);
             }
-            if possible_formats.contains(&BarcodeFormat::ITF) {
-                if let Ok(res) = ITFReader::default().decode_row(row_number, row, hints) {
-                    return Ok(res);
-                }
+            if possible_formats.contains(&BarcodeFormat::ITF)
+                && let Ok(res) = ITFReader::default().decode_row(row_number, row, hints)
+            {
+                return Ok(res);
             }
-            if possible_formats.contains(&BarcodeFormat::CODABAR) {
-                if let Ok(res) = CodaBarReader::default().decode_row(row_number, row, hints) {
-                    return Ok(res);
-                }
+            if possible_formats.contains(&BarcodeFormat::CODABAR)
+                && let Ok(res) = CodaBarReader::default().decode_row(row_number, row, hints)
+            {
+                return Ok(res);
             }
-            if possible_formats.contains(&BarcodeFormat::RSS_14) {
-                if let Ok(res) = rss_14_reader.decode_row(row_number, row, hints) {
-                    return Ok(res);
-                }
+            if possible_formats.contains(&BarcodeFormat::RSS_14)
+                && let Ok(res) = rss_14_reader.decode_row(row_number, row, hints)
+            {
+                return Ok(res);
             }
-            if possible_formats.contains(&BarcodeFormat::RSS_EXPANDED) {
-                if let Ok(res) = rss_expanded_reader.decode_row(row_number, row, hints) {
-                    return Ok(res);
-                }
+            if possible_formats.contains(&BarcodeFormat::RSS_EXPANDED)
+                && let Ok(res) = rss_expanded_reader.decode_row(row_number, row, hints)
+            {
+                return Ok(res);
             }
-            if possible_formats.contains(&BarcodeFormat::TELEPEN) {
-                if let Ok(res) = TelepenReader::default().decode_row(row_number, row, hints) {
-                    return Ok(res);
-                }
+            if possible_formats.contains(&BarcodeFormat::TELEPEN)
+                && let Ok(res) = TelepenReader::default().decode_row(row_number, row, hints)
+            {
+                return Ok(res);
             }
         } else {
             if let Ok(res) =

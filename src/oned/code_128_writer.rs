@@ -138,23 +138,15 @@ fn check(contents: &str, hints: &crate::EncodeHints) -> Result<i32> {
         const CODE_CODE_B_I32: i32 = CODE_CODE_B as i32;
         const CODE_CODE_C_I32: i32 = CODE_CODE_C as i32;
         match forcedCodeSet {
-            CODE_CODE_A_I32 =>
-            // allows no ascii above 95 (no lower caps, no special symbols)
-            {
-                if c > 95 && c <= 127 {
-                    return Err(Exceptions::illegal_argument_with(format!(
-                        "Bad character in input for forced code set A: ASCII value={c}"
-                    )));
-                }
+            CODE_CODE_A_I32 if c > 95 && c <= 127 => {
+                return Err(Exceptions::illegal_argument_with(format!(
+                    "Bad character in input for forced code set A: ASCII value={c}"
+                )));
             }
-            CODE_CODE_B_I32 =>
-            // allows no ascii below 32 (terminal symbols)
-            {
-                if c < 32 {
-                    return Err(Exceptions::illegal_argument_with(format!(
-                        "Bad character in input for forced code set B: ASCII value={c}"
-                    )));
-                }
+            CODE_CODE_B_I32 if c < 32 => {
+                return Err(Exceptions::illegal_argument_with(format!(
+                    "Bad character in input for forced code set B: ASCII value={c}"
+                )));
             }
             // allows only numbers and no FNC 2/3/4
             CODE_CODE_C_I32

@@ -149,10 +149,10 @@ impl<'a> AlignmentPatternFinder<'a> {
                 }
                 j += 1;
             }
-            if self.foundPatternCross(&stateCount) {
-                if let Some(confirmed) = self.handlePossibleCenter(&stateCount, i, maxJ) {
-                    return Ok(confirmed);
-                }
+            if self.foundPatternCross(&stateCount)
+                && let Some(confirmed) = self.handlePossibleCenter(&stateCount, i, maxJ)
+            {
+                return Ok(confirmed);
             }
         }
 

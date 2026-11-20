@@ -235,29 +235,29 @@ impl<'a> EdgeTracer<'_> {
                             self.p = pEdge.centered();
 
                             // if (self.history && maxStepSize == 1) {
-                            if let Some(history) = &self.history {
-                                if maxStepSize == 1 {
-                                    if history
-                                        .read()
-                                        .map_err(|_| {
-                                            Exceptions::illegal_state_with(
-                                                "Failed to acquire read lock",
-                                            )
-                                        })?
-                                        .get(self.p.x as u32, self.p.y as u32)
-                                        == self.state as u8
-                                    {
-                                        return Ok(StepResult::ClosedEnd);
-                                    }
-                                    history
-                                        .write()
-                                        .map_err(|_| {
-                                            Exceptions::illegal_state_with(
-                                                "Failed to acquire write lock",
-                                            )
-                                        })?
-                                        .set(self.p.x as u32, self.p.y as u32, self.state as u8);
+                            if let Some(history) = &self.history
+                                && maxStepSize == 1
+                            {
+                                if history
+                                    .read()
+                                    .map_err(|_| {
+                                        Exceptions::illegal_state_with(
+                                            "Failed to acquire read lock",
+                                        )
+                                    })?
+                                    .get(self.p.x as u32, self.p.y as u32)
+                                    == self.state as u8
+                                {
+                                    return Ok(StepResult::ClosedEnd);
                                 }
+                                history
+                                    .write()
+                                    .map_err(|_| {
+                                        Exceptions::illegal_state_with(
+                                            "Failed to acquire write lock",
+                                        )
+                                    })?
+                                    .set(self.p.x as u32, self.p.y as u32, self.state as u8);
                             }
 
                             return Ok(StepResult::Found);

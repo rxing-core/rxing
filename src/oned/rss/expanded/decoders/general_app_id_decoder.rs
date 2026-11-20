@@ -152,14 +152,14 @@ impl<'a> GeneralAppIdDecoder<'_> {
 
         self.current.setPosition(pos);
 
-        if let Ok(lastDecoded) = self.parseBlocks() {
-            if lastDecoded.isRemaining() {
-                return Ok(DecodedInformation::with_remaining_value(
-                    self.current.getPosition(),
-                    self.buffer.clone(),
-                    lastDecoded.getRemainingValue(),
-                ));
-            }
+        if let Ok(lastDecoded) = self.parseBlocks()
+            && lastDecoded.isRemaining()
+        {
+            return Ok(DecodedInformation::with_remaining_value(
+                self.current.getPosition(),
+                self.buffer.clone(),
+                lastDecoded.getRemainingValue(),
+            ));
         }
         Ok(DecodedInformation::new(
             self.current.getPosition(),

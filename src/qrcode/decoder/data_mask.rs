@@ -97,10 +97,10 @@ impl DataMask {
         match self {
             DataMask::DATA_MASK_000 => ((i + j) & 0x01) == 0,
             DataMask::DATA_MASK_001 => (i & 0x01) == 0,
-            DataMask::DATA_MASK_010 => j % 3 == 0,
-            DataMask::DATA_MASK_011 => (i + j) % 3 == 0,
+            DataMask::DATA_MASK_010 => j.is_multiple_of(3),
+            DataMask::DATA_MASK_011 => (i + j).is_multiple_of(3),
             DataMask::DATA_MASK_100 => (((i / 2) + (j / 3)) & 0x01) == 0,
-            DataMask::DATA_MASK_101 => (i * j) % 6 == 0,
+            DataMask::DATA_MASK_101 => (i * j).is_multiple_of(6),
             DataMask::DATA_MASK_110 => ((i * j) % 6) < 3,
             DataMask::DATA_MASK_111 => ((i + j + ((i * j) % 3)) & 0x01) == 0,
         }

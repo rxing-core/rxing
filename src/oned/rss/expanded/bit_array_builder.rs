@@ -35,10 +35,10 @@ use super::ExpandedPair;
 
 pub fn buildBitArray(pairs: &[ExpandedPair]) -> Option<BitArray> {
     let mut charNumber = (pairs.len() * 2) - 1;
-    if let Some(pair) = pairs.last() {
-        if pair.getRightChar().is_none() {
-            charNumber -= 1;
-        }
+    if let Some(pair) = pairs.last()
+        && pair.getRightChar().is_none()
+    {
+        charNumber -= 1;
     }
     // if pairs.last().unwrap().getRightChar().is_none() {
     //     charNumber -= 1;

@@ -418,10 +418,10 @@ fn toPrimaryValues(lists: Option<Vec<Vec<String>>>) -> Vec<String> {
     for list in local_lists {
         // for (List<String> list : lists) {
         let position = if list.len() > 1 { list.len() - 1 } else { 0 };
-        if let Some(value) = list.get(position) {
-            if !value.is_empty() {
-                result.push(value.clone());
-            }
+        if let Some(value) = list.get(position)
+            && !value.is_empty()
+        {
+            result.push(value.clone());
         }
     }
 
@@ -436,28 +436,28 @@ fn toTypes(lists: Option<Vec<Vec<String>>>) -> Vec<String> {
     let mut result = Vec::with_capacity(local_lists.len()); //new ArrayList<>(lists.size());
     for list in local_lists {
         // for (List<String> list : lists) {
-        if let Some(value) = list.first() {
-            if !value.is_empty() {
-                let mut v_type = String::new();
-                let final_value = list.last().unwrap_or(&String::default()).clone();
-                if !final_value.is_empty() {
-                    for i in 0..list.len() - 1 {
-                        // for (int i = 1; i < list.size(); i++) {
-                        let metadatum = list.get(i).unwrap_or(&String::default()).clone();
-                        if let Some(equals) = metadatum.find('=') {
-                            if "TYPE" == (metadatum[0..equals]).to_uppercase() {
-                                metadatum[equals + 1..].clone_into(&mut v_type);
-                                break;
-                            }
-                        } else {
-                            // if (equals < 0) {
-                            // take the whole thing as a usable label
-                            metadatum.clone_into(&mut v_type);
+        if let Some(value) = list.first()
+            && !value.is_empty()
+        {
+            let mut v_type = String::new();
+            let final_value = list.last().unwrap_or(&String::default()).clone();
+            if !final_value.is_empty() {
+                for i in 0..list.len() - 1 {
+                    // for (int i = 1; i < list.size(); i++) {
+                    let metadatum = list.get(i).unwrap_or(&String::default()).clone();
+                    if let Some(equals) = metadatum.find('=') {
+                        if "TYPE" == (metadatum[0..equals]).to_uppercase() {
+                            metadatum[equals + 1..].clone_into(&mut v_type);
                             break;
                         }
+                    } else {
+                        // if (equals < 0) {
+                        // take the whole thing as a usable label
+                        metadatum.clone_into(&mut v_type);
+                        break;
                     }
-                    result.push(v_type);
                 }
+                result.push(v_type);
             }
         }
     }

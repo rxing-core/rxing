@@ -124,11 +124,11 @@ impl BitMatrixParser {
             }
         }
 
-        if let Ok(theParsedVersion) = Version::decodeVersionInformation(versionBits) {
-            if theParsedVersion.getDimensionForVersion() == dimension {
-                self.parsedVersion = Some(theParsedVersion);
-                return Ok(theParsedVersion);
-            }
+        if let Ok(theParsedVersion) = Version::decodeVersionInformation(versionBits)
+            && theParsedVersion.getDimensionForVersion() == dimension
+        {
+            self.parsedVersion = Some(theParsedVersion);
+            return Ok(theParsedVersion);
         }
 
         // Hmm, failed. Try bottom left: 6 wide by 3 tall
@@ -139,11 +139,11 @@ impl BitMatrixParser {
             }
         }
 
-        if let Ok(theParsedVersion) = Version::decodeVersionInformation(versionBits) {
-            if theParsedVersion.getDimensionForVersion() == dimension {
-                self.parsedVersion = Some(theParsedVersion);
-                return Ok(theParsedVersion);
-            }
+        if let Ok(theParsedVersion) = Version::decodeVersionInformation(versionBits)
+            && theParsedVersion.getDimensionForVersion() == dimension
+        {
+            self.parsedVersion = Some(theParsedVersion);
+            return Ok(theParsedVersion);
         }
         Err(Exceptions::FORMAT)
     }

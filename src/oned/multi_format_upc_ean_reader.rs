@@ -63,38 +63,38 @@ impl OneDReader for MultiFormatUPCEANReader {
                 ) {
                     return Ok(res);
                 }
-            } else if possible_formats.contains(&BarcodeFormat::UPC_A) {
-                if let Ok(res) = self.try_decode_function(
+            } else if possible_formats.contains(&BarcodeFormat::UPC_A)
+                && let Ok(res) = self.try_decode_function(
                     &UPCAReader::default(),
                     rowNumber,
                     row,
                     hints,
                     &start_guard_pattern,
-                ) {
-                    return Ok(res);
-                }
+                )
+            {
+                return Ok(res);
             }
-            if possible_formats.contains(&BarcodeFormat::EAN_8) {
-                if let Ok(res) = self.try_decode_function(
+            if possible_formats.contains(&BarcodeFormat::EAN_8)
+                && let Ok(res) = self.try_decode_function(
                     &EAN8Reader,
                     rowNumber,
                     row,
                     hints,
                     &start_guard_pattern,
-                ) {
-                    return Ok(res);
-                }
+                )
+            {
+                return Ok(res);
             }
-            if possible_formats.contains(&BarcodeFormat::UPC_E) {
-                if let Ok(res) = self.try_decode_function(
+            if possible_formats.contains(&BarcodeFormat::UPC_E)
+                && let Ok(res) = self.try_decode_function(
                     &UPCEReader,
                     rowNumber,
                     row,
                     hints,
                     &start_guard_pattern,
-                ) {
-                    return Ok(res);
-                }
+                )
+            {
+                return Ok(res);
             }
         } else {
             if let Ok(res) =

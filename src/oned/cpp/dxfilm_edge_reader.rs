@@ -257,7 +257,7 @@ impl RowReader for DXFilmEdgeReader<'_> {
             if (1..=20).contains(&modules) {
                 // even index means we are at a bar, otherwise at a space
                 dataBits.appendBits(
-                    if next.index() % 2 == 0 {
+                    if next.index().is_multiple_of(2) {
                         0xFFFFFFFF_usize
                     } else {
                         0x0

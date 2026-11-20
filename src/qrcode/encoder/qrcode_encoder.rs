@@ -82,10 +82,8 @@ pub fn encode_with_hints(
     // Determine what character encoding has been specified by the caller, if any
     let mut encoding = None; //DEFAULT_BYTE_MODE_ENCODING;
     let mut has_encoding_hint = hints.CharacterSet.is_some();
-    if has_encoding_hint {
-        if let Some(v) = &hints.CharacterSet {
-            encoding = Some(CharacterSet::get_character_set_by_name(v).ok_or(Exceptions::WRITER)?)
-        }
+    if has_encoding_hint && let Some(v) = &hints.CharacterSet {
+        encoding = Some(CharacterSet::get_character_set_by_name(v).ok_or(Exceptions::WRITER)?)
     }
 
     if has_compaction_hint {

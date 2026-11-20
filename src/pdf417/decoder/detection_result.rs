@@ -282,16 +282,16 @@ impl DetectionRXingResult {
                 // for (int barcodeColumn = barcodeColumnCount + 1;
                 //      barcodeColumn > 0 && invalidRowCounts < ADJUST_ROW_NUMBER_SKIP;
                 //      barcodeColumn--) {
-                if let Some(bc_col) = &mut self.detectionRXingResultColumns[barcodeColumn] {
-                    if let Some(codeword) = &mut bc_col.getCodewordsMut()[codewordsRow] {
-                        invalidRowCounts = Self::adjustRowNumberIfValid(
-                            rowIndicatorRowNumber,
-                            invalidRowCounts,
-                            codeword,
-                        );
-                        if !codeword.hasValidRowNumber() {
-                            unadjustedCount += 1;
-                        }
+                if let Some(bc_col) = &mut self.detectionRXingResultColumns[barcodeColumn]
+                    && let Some(codeword) = &mut bc_col.getCodewordsMut()[codewordsRow]
+                {
+                    invalidRowCounts = Self::adjustRowNumberIfValid(
+                        rowIndicatorRowNumber,
+                        invalidRowCounts,
+                        codeword,
+                    );
+                    if !codeword.hasValidRowNumber() {
+                        unadjustedCount += 1;
                     }
                 }
                 barcodeColumn -= 1;
@@ -368,16 +368,16 @@ impl DetectionRXingResult {
                 // for (int barcodeColumn = 1;
                 //      barcodeColumn < barcodeColumnCount + 1 && invalidRowCounts < ADJUST_ROW_NUMBER_SKIP;
                 //      barcodeColumn++) {
-                if let Some(bc_column) = &mut self.detectionRXingResultColumns[barcodeColumn] {
-                    if let Some(codeword) = &mut bc_column.getCodewordsMut()[codewordsRow] {
-                        invalidRowCounts = Self::adjustRowNumberIfValid(
-                            rowIndicatorRowNumber,
-                            invalidRowCounts,
-                            codeword,
-                        );
-                        if !codeword.hasValidRowNumber() {
-                            unadjustedCount += 1;
-                        }
+                if let Some(bc_column) = &mut self.detectionRXingResultColumns[barcodeColumn]
+                    && let Some(codeword) = &mut bc_column.getCodewordsMut()[codewordsRow]
+                {
+                    invalidRowCounts = Self::adjustRowNumberIfValid(
+                        rowIndicatorRowNumber,
+                        invalidRowCounts,
+                        codeword,
+                    );
+                    if !codeword.hasValidRowNumber() {
+                        unadjustedCount += 1;
                     }
                 }
                 // let codeword = self.detectionRXingResultColumns[barcodeColumn].getCodewords()[codewordsRow];

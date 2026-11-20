@@ -90,10 +90,10 @@ impl LuminanceSource for Luma8Source<'_> {
     }
 
     fn get_matrix(&self) -> Cow<'_, [u8]> {
-        if !self.inverted {
-            if let Some(slice) = self.contiguous_slice() {
-                return Cow::Borrowed(slice);
-            }
+        if !self.inverted
+            && let Some(slice) = self.contiguous_slice()
+        {
+            return Cow::Borrowed(slice);
         }
         let packed = match self.contiguous_slice() {
             Some(slice) => slice.to_vec(),

@@ -219,10 +219,11 @@ impl MultiUseMultiFormatReader {
             //     || self.possible_formats.contains()
             //     || self.possible_formats.contains();
             #[cfg(feature = "oned")]
-            if one_d && !self.try_harder {
-                if let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints) {
-                    return Ok(res);
-                }
+            if one_d
+                && !self.try_harder
+                && let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints)
+            {
+                return Ok(res);
             }
             for possible_format in self.possible_formats.iter() {
                 let res = match possible_format {
@@ -260,10 +261,11 @@ impl MultiUseMultiFormatReader {
                 }
             }
             #[cfg(feature = "oned")]
-            if one_d && self.try_harder {
-                if let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints) {
-                    return Ok(res);
-                }
+            if one_d
+                && self.try_harder
+                && let Ok(res) = self.one_d_reader.decode_with_hints(image, &self.hints)
+            {
+                return Ok(res);
             }
         } else {
             if !self.try_harder {

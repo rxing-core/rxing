@@ -96,11 +96,11 @@ pub fn is_basically_valid_uri(uri: &str) -> bool {
         return false;
     }
     // let m = Regex::new(URL_WITH_PROTOCOL_PATTERN).expect("Regex patterns should always copile"); //.matcher(uri);
-    if let Some(found) = URL_WITH_PROTOCOL_PATTERN.find(uri) {
-        if found.start() == 0 {
-            // match at start only
-            return true;
-        }
+    if let Some(found) = URL_WITH_PROTOCOL_PATTERN.find(uri)
+        && found.start() == 0
+    {
+        // match at start only
+        return true;
     }
 
     // let m = Regex::new(URL_WITHOUT_PROTOCOL_PATTERN).expect("Regex patterns should always copile"); //.matcher(uri);

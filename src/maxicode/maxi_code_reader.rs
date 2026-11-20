@@ -154,13 +154,13 @@ impl MaxiCodeReader {
             );
         }
 
-        if let Some(rot) = rotation {
-            if rot > 0.0 {
-                result.putMetadata(
-                    RXingResultMetadataType::ORIENTATION,
-                    crate::RXingResultMetadataValue::Orientation(rot as i32),
-                )
-            }
+        if let Some(rot) = rotation
+            && rot > 0.0
+        {
+            result.putMetadata(
+                RXingResultMetadataType::ORIENTATION,
+                crate::RXingResultMetadataValue::Orientation(rot as i32),
+            )
         }
 
         Ok(result)
