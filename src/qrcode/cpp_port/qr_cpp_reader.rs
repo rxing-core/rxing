@@ -210,6 +210,7 @@ impl QrReader {
         dimension: u32,
         hints: &DecodeHints,
         cache: &mut Vec<(u32, BitMatrix)>,
+        observer: &mut dyn FnMut(&BitMatrix, &[Point]),
     ) -> Option<(DecoderResult<bool>, Vec<Point>)> {
         if dimension <= 7 {
             return None;
@@ -239,17 +240,62 @@ impl QrReader {
                 continue;
             };
             if let Some(result) = Self::decode_qr_bits(detectorResult.getBits(), hints) {
+                // Observe the bits this re-sample actually decoded from, at the point
+                // it sampled them: the dilated copy's sample, not the one the plain
+                // pass started from, which is what the observer is promised to be.
+                observer(detectorResult.getBits(), detectorResult.getPoints());
                 return Some((result, detectorResult.getPoints().to_vec()));
             }
         }
         None
     }
 
-    fn decode_set_number_with_hints<B: crate::Binarizer>(
+    /// `Reader::decode_with_hints`, with an observer for each symbol the scan
+    /// reports.
+    ///
+    /// The observer is called with the binarized matrix the symbol was sampled
+    /// from and the result points, immediately before the symbol is pushed to
+    /// the results, so the observer sees exactly the bits `Decode` read its
+    /// corrected codewords from and nothing else: one call per reported symbol,
+    /// in result order. It is an observation, not a filter — what it returns is
+    /// discarded and it cannot change what the scan reports.
+    ///
+    /// A symbol rescued from the dilated re-sample is observed there, at the
+    /// sample it was decoded from, not at the one the plain pass started from.
+    ///
+    /// This exists because the `Reader`/`MultipleBarcodeReader` entry points
+    /// return the decode results and keep the sampled matrix to themselves. A
+    /// consumer that has to look at the same bits the decoder looked at — to
+    /// re-read the corrected codewords, or to check what the sampled region
+    /// actually contains — cannot do it through those traits, and today has to
+    /// copy this loop to get the pairing.
+    pub fn decode_with_hints_observed<B: crate::Binarizer>(
+        &self,
+        image: &mut crate::BinaryBitmap<B>,
+        hints: &DecodeHints,
+        observer: &mut dyn FnMut(&crate::common::BitMatrix, &[crate::Point]),
+    ) -> crate::common::Result<RXingResult> {
+        self.internal_decode_with_hints_observed(image, hints, observer)
+    }
+
+    /// `MultipleBarcodeReader::decode_multiple_with_hints`, capped at `count`
+    /// symbols, with the same observer as [`Self::decode_with_hints_observed`].
+    pub fn decode_multiple_with_hints_observed<B: crate::Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
         hints: &DecodeHints,
         count: u32,
+        observer: &mut dyn FnMut(&crate::common::BitMatrix, &[crate::Point]),
+    ) -> crate::common::Result<Vec<RXingResult>> {
+        self.decode_set_number_with_hints_observed(image, hints, count, observer)
+    }
+
+    fn decode_set_number_with_hints_observed<B: crate::Binarizer>(
+        &self,
+        image: &mut crate::BinaryBitmap<B>,
+        hints: &DecodeHints,
+        count: u32,
+        observer: &mut dyn FnMut(&crate::common::BitMatrix, &[crate::Point]),
     ) -> crate::common::Result<Vec<RXingResult>> {
         let binImg = image.get_black_matrix(); //image.getBitMatrix();
         let maxSymbols = count;
@@ -300,18 +346,22 @@ impl QrReader {
                 let detectorResult = SampleQR(binImg, &fpSet);
                 if let Ok(detectorResult) = detectorResult {
                     // if (detectorResult.is_ok()) {
+                    let mut from_dilation = false;
                     let decoded = Self::decode_qr_bits(detectorResult.getBits(), hints)
                         .map(|r| (r, detectorResult.getPoints().to_vec()))
                         .or_else(|| {
                             // Not part of the C++ port: stylized QR codes (#128).
                             if try_harder {
-                                Self::decode_qr_dilated(
+                                let rescued = Self::decode_qr_dilated(
                                     binImg,
                                     &fpSet,
                                     detectorResult.getBits().getWidth(),
                                     hints,
                                     &mut dilated_cache,
-                                )
+                                    observer,
+                                )?;
+                                from_dilation = true;
+                                Some(rescued)
                             } else {
                                 None
                             }
@@ -321,6 +371,14 @@ impl QrReader {
                         usedFPs.push(fpSet.bl);
                         usedFPs.push(fpSet.tl);
                         usedFPs.push(fpSet.tr);
+
+                        if !from_dilation {
+                            // Observe the bits the decoder just read its corrected
+                            // codewords from, one call per reported symbol. A symbol
+                            // rescued from the dilated re-sample is observed inside
+                            // that re-sample, at the bits it was actually decoded from.
+                            observer(detectorResult.getBits(), &position);
+                        }
 
                         results.push(RXingResult::with_decoder_result(
                             decoderResult,
@@ -352,6 +410,9 @@ impl QrReader {
                     if let Ok(decoderResult) = decoderResult
                         && decoderResult.isValid()
                     {
+                        // Observe the bits the decoder just read its corrected
+                        // codewords from, one call per reported symbol.
+                        observer(detectorResult.getBits(), position);
                         results.push(RXingResult::with_decoder_result(
                             decoderResult,
                             position,
@@ -381,6 +442,9 @@ impl QrReader {
                     if let Ok(decoderResult) = decoderResult
                         && decoderResult.isValid()
                     {
+                        // Observe the bits the decoder just read its corrected
+                        // codewords from, one call per reported symbol.
+                        observer(detectorResult.getBits(), position);
                         results.push(RXingResult::with_decoder_result(
                             decoderResult,
                             position,
@@ -398,10 +462,28 @@ impl QrReader {
         Ok(results)
     }
 
+    fn decode_set_number_with_hints<B: crate::Binarizer>(
+        &self,
+        image: &mut crate::BinaryBitmap<B>,
+        hints: &DecodeHints,
+        count: u32,
+    ) -> crate::common::Result<Vec<RXingResult>> {
+        self.decode_set_number_with_hints_observed(image, hints, count, &mut |_, _| {})
+    }
+
     fn internal_decode_with_hints<B: crate::Binarizer>(
         &self,
         image: &mut crate::BinaryBitmap<B>,
         hints: &DecodeHints,
+    ) -> crate::common::Result<RXingResult> {
+        self.internal_decode_with_hints_observed(image, hints, &mut |_, _| {})
+    }
+
+    fn internal_decode_with_hints_observed<B: crate::Binarizer>(
+        &self,
+        image: &mut crate::BinaryBitmap<B>,
+        hints: &DecodeHints,
+        observer: &mut dyn FnMut(&crate::common::BitMatrix, &[crate::Point]),
     ) -> crate::common::Result<RXingResult> {
         // #if 1
         if !matches!(hints.PureBarcode, Some(true))
@@ -409,7 +491,7 @@ impl QrReader {
         // if (!_hints.isPure())
         {
             return Ok(self
-                .decode_set_number_with_hints(image, hints, 1)?
+                .decode_set_number_with_hints_observed(image, hints, 1, observer)?
                 .first()
                 .ok_or(Exceptions::NOT_FOUND)?
                 .clone());
@@ -461,6 +543,7 @@ impl QrReader {
             Decode(detectorResult.getBits())?.withCharacterSetHint(hints.CharacterSet.clone());
         let position = detectorResult.getPoints();
 
+        observer(detectorResult.getBits(), position);
         Ok(RXingResult::with_decoder_result(
             decoderResult,
             position,
