@@ -195,44 +195,14 @@ impl CharacterSet {
                     .map(|data| data.to_vec())
                     .map_err(|e| Exceptions::format_with(format!("{e:?}")))
             }
-            CharacterSet::UTF16BE => {
-                Ok(input.encode_utf16().flat_map(|u| u.to_be_bytes()).collect())
-            }
-            CharacterSet::UTF16LE => {
-                Ok(input.encode_utf16().flat_map(|u| u.to_le_bytes()).collect())
-            }
-            CharacterSet::UTF32BE => Ok(input
-                .chars()
-                .flat_map(|c| (c as u32).to_be_bytes())
-                .collect()),
-            CharacterSet::UTF32LE => Ok(input
-                .chars()
-                .flat_map(|c| (c as u32).to_le_bytes())
-                .collect()),
+            CharacterSet::UTF16BE => Ok(table_free::encode_utf16(input, true)),
+            CharacterSet::UTF16LE => Ok(table_free::encode_utf16(input, false)),
+            CharacterSet::UTF32BE => Ok(table_free::encode_utf32(input, true)),
+            CharacterSet::UTF32LE => Ok(table_free::encode_utf32(input, false)),
             CharacterSet::Binary | CharacterSet::ISO8859_1 => {
-                let mut bytes = Vec::with_capacity(input.len());
-                for c in input.chars() {
-                    if c as u32 > 0xFF {
-                        return Err(Exceptions::format_with(
-                            "Binary/ISO-8859-1 encoding only supports characters up to U+00FF",
-                        ));
-                    }
-                    bytes.push(c as u8);
-                }
-                Ok(bytes)
+                table_free::encode_latin1(input, false)
             }
-            CharacterSet::ASCII => {
-                let mut bytes = Vec::with_capacity(input.len());
-                for c in input.chars() {
-                    if c as u32 > 0x7F {
-                        return Err(Exceptions::format_with(
-                            "ASCII encoding only supports characters up to U+007F",
-                        ));
-                    }
-                    bytes.push(c as u8);
-                }
-                Ok(bytes)
-            }
+            CharacterSet::ASCII => table_free::encode_ascii(input, false),
             _ => {
                 if let Some(enc) = self.get_encoding() {
                     let (res, _, had_errors) = enc.encode(input);
@@ -255,19 +225,9 @@ impl CharacterSet {
             | CharacterSet::UTF32BE
             | CharacterSet::UTF32LE => self.encode(input),
             CharacterSet::Binary | CharacterSet::ISO8859_1 => {
-                let bytes = input
-                    .chars()
-                    .map(|c| if c as u32 > 0xFF { b'?' } else { c as u8 })
-                    .collect();
-                Ok(bytes)
+                table_free::encode_latin1(input, true)
             }
-            CharacterSet::ASCII => {
-                let bytes = input
-                    .chars()
-                    .map(|c| if c as u32 > 0x7F { b'?' } else { c as u8 })
-                    .collect();
-                Ok(bytes)
-            }
+            CharacterSet::ASCII => table_free::encode_ascii(input, true),
             _ => {
                 if let Some(enc) = self.get_encoding() {
                     let (res, _, _) = enc.encode(input);
@@ -287,55 +247,10 @@ impl CharacterSet {
 
                 Ok(String::borrow_from_cp437(input, &CP437_CONTROL))
             }
-            CharacterSet::UTF32BE => {
-                let u32s: Result<Vec<u32>, _> = input
-                    .chunks_exact(4)
-                    .map(|c| {
-                        let val = u32::from_be_bytes([c[0], c[1], c[2], c[3]]);
-                        if char::from_u32(val).is_some() {
-                            Ok(val)
-                        } else {
-                            Err(())
-                        }
-                    })
-                    .collect();
-                let u32s = u32s.map_err(|_| Exceptions::format_with("Invalid UTF-32BE"))?;
-                Ok(u32s
-                    .into_iter()
-                    .map(|u| char::from_u32(u).unwrap())
-                    .collect())
-            }
-            CharacterSet::UTF32LE => {
-                let u32s: Result<Vec<u32>, _> = input
-                    .chunks_exact(4)
-                    .map(|c| {
-                        let val = u32::from_le_bytes([c[0], c[1], c[2], c[3]]);
-                        if char::from_u32(val).is_some() {
-                            Ok(val)
-                        } else {
-                            Err(())
-                        }
-                    })
-                    .collect();
-                let u32s = u32s.map_err(|_| Exceptions::format_with("Invalid UTF-32LE"))?;
-                Ok(u32s
-                    .into_iter()
-                    .map(|u| char::from_u32(u).unwrap())
-                    .collect())
-            }
-            CharacterSet::Binary | CharacterSet::ISO8859_1 => {
-                Ok(input.iter().map(|&b| char::from(b)).collect())
-            }
-            CharacterSet::ASCII => {
-                let mut s = String::with_capacity(input.len());
-                for &b in input {
-                    if b > 0x7F {
-                        return Err(Exceptions::format_with("Invalid ASCII"));
-                    }
-                    s.push(char::from(b));
-                }
-                Ok(s)
-            }
+            CharacterSet::UTF32BE => table_free::decode_utf32(input, true, false),
+            CharacterSet::UTF32LE => table_free::decode_utf32(input, false, false),
+            CharacterSet::Binary | CharacterSet::ISO8859_1 => Ok(table_free::decode_latin1(input)),
+            CharacterSet::ASCII => table_free::decode_ascii(input, false),
             _ => {
                 if let Some(enc) = self.get_encoding() {
                     let (res, _, had_errors) = enc.decode(input);
@@ -355,30 +270,9 @@ impl CharacterSet {
             CharacterSet::Cp437 | CharacterSet::Binary | CharacterSet::ISO8859_1 => {
                 self.decode(input)
             }
-            CharacterSet::ASCII => Ok(input
-                .iter()
-                .map(|&b| if b > 0x7F { '\u{FFFD}' } else { char::from(b) })
-                .collect()),
-            CharacterSet::UTF32BE => {
-                let res = input
-                    .chunks_exact(4)
-                    .map(|c| {
-                        let val = u32::from_be_bytes([c[0], c[1], c[2], c[3]]);
-                        char::from_u32(val).unwrap_or('\u{FFFD}')
-                    })
-                    .collect();
-                Ok(res)
-            }
-            CharacterSet::UTF32LE => {
-                let res = input
-                    .chunks_exact(4)
-                    .map(|c| {
-                        let val = u32::from_le_bytes([c[0], c[1], c[2], c[3]]);
-                        char::from_u32(val).unwrap_or('\u{FFFD}')
-                    })
-                    .collect();
-                Ok(res)
-            }
+            CharacterSet::ASCII => table_free::decode_ascii(input, true),
+            CharacterSet::UTF32BE => table_free::decode_utf32(input, true, true),
+            CharacterSet::UTF32LE => table_free::decode_utf32(input, false, true),
             _ => {
                 if let Some(enc) = self.get_encoding() {
                     let (res, _, _) = enc.decode(input);
@@ -479,17 +373,205 @@ impl CharacterSet {
     }
 }
 
+// NO CHARACTER SET SUPPORT
+// Only the sets the standard library converts without lookup tables: UTF-8,
+// UTF-16, UTF-32, US-ASCII and ISO-8859-1 (also used for Binary). Every other
+// set returns an error, which a reader treats like any other undecodable
+// symbol, rather than panicking.
 #[cfg(feature = "no_character_set_support")]
 impl CharacterSet {
-    pub fn encode(&self, _input: &str) -> Result<Vec<u8>> {
-        unimplemented!()
+    pub fn encode(&self, input: &str) -> Result<Vec<u8>> {
+        self.encode_table_free(input, false)
     }
 
-    pub fn encode_replace(&self, _input: &str) -> Result<Vec<u8>> {
-        unimplemented!()
+    pub fn encode_replace(&self, input: &str) -> Result<Vec<u8>> {
+        self.encode_table_free(input, true)
     }
 
-    pub fn decode(&self, _input: &[u8]) -> Result<String> {
-        unimplemented!()
+    pub fn decode(&self, input: &[u8]) -> Result<String> {
+        self.decode_table_free(input, false)
+    }
+
+    pub fn decode_replace(&self, input: &[u8]) -> Result<String> {
+        self.decode_table_free(input, true)
+    }
+
+    fn encode_table_free(&self, input: &str, replace: bool) -> Result<Vec<u8>> {
+        match self {
+            CharacterSet::UTF8 => Ok(input.as_bytes().to_vec()),
+            CharacterSet::UTF16BE => Ok(table_free::encode_utf16(input, true)),
+            CharacterSet::UTF16LE => Ok(table_free::encode_utf16(input, false)),
+            CharacterSet::UTF32BE => Ok(table_free::encode_utf32(input, true)),
+            CharacterSet::UTF32LE => Ok(table_free::encode_utf32(input, false)),
+            CharacterSet::Binary | CharacterSet::ISO8859_1 => {
+                table_free::encode_latin1(input, replace)
+            }
+            CharacterSet::ASCII => table_free::encode_ascii(input, replace),
+            _ => Err(self.needs_tables()),
+        }
+    }
+
+    fn decode_table_free(&self, input: &[u8], replace: bool) -> Result<String> {
+        match self {
+            CharacterSet::UTF8 => table_free::decode_utf8(input, replace),
+            CharacterSet::UTF16BE => table_free::decode_utf16(input, true, replace),
+            CharacterSet::UTF16LE => table_free::decode_utf16(input, false, replace),
+            CharacterSet::UTF32BE => table_free::decode_utf32(input, true, replace),
+            CharacterSet::UTF32LE => table_free::decode_utf32(input, false, replace),
+            CharacterSet::Binary | CharacterSet::ISO8859_1 => Ok(table_free::decode_latin1(input)),
+            CharacterSet::ASCII => table_free::decode_ascii(input, replace),
+            _ => Err(self.needs_tables()),
+        }
+    }
+
+    fn needs_tables(&self) -> Exceptions {
+        Exceptions::unsupported_operation_with(format!(
+            "{} needs the encoding_rs or legacy_encoding feature",
+            self.get_charset_name()
+        ))
+    }
+}
+
+/// Conversions that need no lookup tables. The `encoding_rs` backend uses
+/// them for these sets, and they are all `no_character_set_support` offers.
+#[cfg(any(feature = "encoding_rs", feature = "no_character_set_support"))]
+mod table_free {
+    use crate::Exceptions;
+    use crate::common::Result;
+
+    const REPLACEMENT_BYTE: u8 = b'?';
+
+    pub(super) fn encode_latin1(input: &str, replace: bool) -> Result<Vec<u8>> {
+        encode_single_byte(
+            input,
+            0xFF,
+            replace,
+            "Binary/ISO-8859-1 encoding only supports characters up to U+00FF",
+        )
+    }
+
+    pub(super) fn encode_ascii(input: &str, replace: bool) -> Result<Vec<u8>> {
+        encode_single_byte(
+            input,
+            0x7F,
+            replace,
+            "ASCII encoding only supports characters up to U+007F",
+        )
+    }
+
+    fn encode_single_byte(input: &str, max: u8, replace: bool, error: &str) -> Result<Vec<u8>> {
+        input
+            .chars()
+            .map(|c| match u8::try_from(c) {
+                Ok(b) if b <= max => Ok(b),
+                _ if replace => Ok(REPLACEMENT_BYTE),
+                _ => Err(Exceptions::format_with(error)),
+            })
+            .collect()
+    }
+
+    pub(super) fn encode_utf16(input: &str, big_endian: bool) -> Vec<u8> {
+        input
+            .encode_utf16()
+            .flat_map(|u| {
+                if big_endian {
+                    u.to_be_bytes()
+                } else {
+                    u.to_le_bytes()
+                }
+            })
+            .collect()
+    }
+
+    pub(super) fn encode_utf32(input: &str, big_endian: bool) -> Vec<u8> {
+        input
+            .chars()
+            .map(u32::from)
+            .flat_map(|u| {
+                if big_endian {
+                    u.to_be_bytes()
+                } else {
+                    u.to_le_bytes()
+                }
+            })
+            .collect()
+    }
+
+    pub(super) fn decode_latin1(input: &[u8]) -> String {
+        input.iter().map(|&b| char::from(b)).collect()
+    }
+
+    pub(super) fn decode_ascii(input: &[u8], replace: bool) -> Result<String> {
+        input
+            .iter()
+            .map(|&b| match b {
+                0..=0x7F => Ok(char::from(b)),
+                _ if replace => Ok(char::REPLACEMENT_CHARACTER),
+                _ => Err(Exceptions::format_with("Invalid ASCII")),
+            })
+            .collect()
+    }
+
+    /// Like `encoding_rs`, a leading byte order mark is not part of the text.
+    #[cfg(feature = "no_character_set_support")]
+    pub(super) fn decode_utf8(input: &[u8], replace: bool) -> Result<String> {
+        let input = input.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(input);
+        if replace {
+            return Ok(String::from_utf8_lossy(input).into_owned());
+        }
+        String::from_utf8(input.to_vec()).map_err(|_| Exceptions::format_with("Invalid UTF-8"))
+    }
+
+    /// A trailing odd byte is malformed, like an unpaired surrogate.
+    #[cfg(feature = "no_character_set_support")]
+    pub(super) fn decode_utf16(input: &[u8], big_endian: bool, replace: bool) -> Result<String> {
+        let pairs = input.chunks_exact(2);
+        let odd_byte = !pairs.remainder().is_empty();
+        let units = pairs.map(|pair| {
+            let pair = [pair[0], pair[1]];
+            if big_endian {
+                u16::from_be_bytes(pair)
+            } else {
+                u16::from_le_bytes(pair)
+            }
+        });
+        let mut text = char::decode_utf16(units)
+            .map(|unit| match unit {
+                Ok(c) => Ok(c),
+                Err(_) if replace => Ok(char::REPLACEMENT_CHARACTER),
+                Err(_) => Err(Exceptions::format_with("Invalid UTF-16")),
+            })
+            .collect::<Result<String>>()?;
+        if odd_byte {
+            if !replace {
+                return Err(Exceptions::format_with("Invalid UTF-16"));
+            }
+            text.push(char::REPLACEMENT_CHARACTER);
+        }
+        Ok(text)
+    }
+
+    /// Trailing bytes short of a whole code unit are ignored.
+    pub(super) fn decode_utf32(input: &[u8], big_endian: bool, replace: bool) -> Result<String> {
+        input
+            .chunks_exact(4)
+            .map(|quad| {
+                let quad = [quad[0], quad[1], quad[2], quad[3]];
+                let value = if big_endian {
+                    u32::from_be_bytes(quad)
+                } else {
+                    u32::from_le_bytes(quad)
+                };
+                match char::from_u32(value) {
+                    Some(c) => Ok(c),
+                    None if replace => Ok(char::REPLACEMENT_CHARACTER),
+                    None => Err(Exceptions::format_with(if big_endian {
+                        "Invalid UTF-32BE"
+                    } else {
+                        "Invalid UTF-32LE"
+                    })),
+                }
+            })
+            .collect()
     }
 }
