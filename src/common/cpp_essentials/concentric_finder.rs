@@ -60,7 +60,7 @@ pub fn ReadSymmetricPattern<const N: usize, Cursor: BitMatrixCursorTrait>(
 
     let mut next = |cur: &mut Cursor, i: isize| {
         let v = cur.stepToEdge(Some(1), Some(range), None);
-        res[(s_2 + i) as usize] = (res[(s_2 + i) as usize] as i32 + v) as u16;
+        res[(s_2 + i) as usize] = (res[(s_2 + i) as usize] as i32 + v) as PatternType;
         // res[(s_2 + i) as usize] += v;
         if range != 0 {
             range -= v;
@@ -110,12 +110,12 @@ pub fn CheckSymmetricPattern<
     assert!(range > 0);
     let mut res: [PatternType; LEN] = [0; LEN];
     let s_2 = (res.len()) / 2;
-    res[s_2] = (centerFwd + centerBwd - 1) as u16; // -1 because the starting pixel is counted twice
+    res[s_2] = (centerFwd + centerBwd - 1) as PatternType; // -1 because the starting pixel is counted twice
     range -= res[s_2] as i32;
 
     let mut next = |cur: &mut FastEdgeToEdgeCounter, i: isize| {
         let v = cur.stepToNextEdge(range as u32) as i32;
-        res[(s_2 as isize + i) as usize] = v as u16;
+        res[(s_2 as isize + i) as usize] = v as PatternType;
         range -= v;
 
         v

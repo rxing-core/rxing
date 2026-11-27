@@ -58,7 +58,7 @@ fn FindPattern(view: PatternView<'_>, min_module_size: f32) -> Result<PatternVie
         |view: &PatternView, spaceInPixel: Option<f32>| {
             // perform a fast plausability test for 1:1:3:1:1 pattern
             if (view[2] as i32) < 3
-                || view[2] < 2 as PatternType * std::cmp::max(view[0], view[4])
+                || (view[2] as u64) < 2 * std::cmp::max(view[0], view[4]) as u64
                 || view[2] < std::cmp::max(view[1], view[3])
             {
                 return false;
@@ -130,7 +130,7 @@ pub fn FindFinderPatterns(
                     image,
                     &PATTERN.into(),
                     p,
-                    next.iter().sum::<u16>() as i32 * 3,
+                    next.iter().sum::<PatternType>() as i32 * 3,
                 ); // 3 for very skewed samples
                 //    Reduce(next) * 3); // 3 for very skewed samples
                 if let Some(p) = pattern {
@@ -903,7 +903,7 @@ pub fn DetectPureQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         }
     }
 
-    let fpWidth = diagonal.iter().sum::<u16>() as i32; //Reduce(diagonal);
+    let fpWidth = diagonal.iter().sum::<PatternType>() as i32; //Reduce(diagonal);
     let dimension = EstimateDimension(
         image,
         ConcentricPattern {
@@ -979,7 +979,7 @@ pub fn DetectPureMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         return Err(Exceptions::NOT_FOUND);
     }
 
-    let fpWidth = diagonal.into_iter().sum::<u16>();
+    let fpWidth = diagonal.into_iter().sum::<PatternType>();
     let moduleSize: f32 = (fpWidth as f32) / 7.0;
     let dimension = (width as f32 / moduleSize).floor() as u32;
 
@@ -1069,7 +1069,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
     }
 
     let mut moduleSize: f32 =
-        (diagonal.iter().sum::<u16>() + subdiagonal.iter().sum::<u16>()) as f32;
+        (diagonal.iter().sum::<PatternType>() + subdiagonal.iter().sum::<PatternType>()) as f32;
 
     // Vertical corner finder patterns
     // Horizontal timing patterns
@@ -1087,7 +1087,7 @@ pub fn DetectPureRMQR(image: &BitMatrix) -> Result<QRCodeDetectorResult> {
         if IsPattern::<E2E, 10, 10, false>(&view, &TIMINGPATTERN, None, 0.0, 0.0, 0.0) == 0.0 {
             return Err(Exceptions::NOT_FOUND);
         }
-        moduleSize += timing.iter().sum::<u16>() as f32;
+        moduleSize += timing.iter().sum::<PatternType>() as f32;
     }
 
     moduleSize /= (7 + 4 + 4 * 10) as f32; // fp + sub + 4 x timing

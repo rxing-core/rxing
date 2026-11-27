@@ -7,7 +7,9 @@ use crate::{
     Point,
     common::{
         BitMatrix, PerspectiveTransform, Quadrilateral,
-        cpp_essentials::{FindConcentricPatternCorners, FixedPattern, LocateConcentricPattern},
+        cpp_essentials::{
+            FindConcentricPatternCorners, FixedPattern, LocateConcentricPattern, PatternType,
+        },
     },
     point,
 };
@@ -63,7 +65,7 @@ fn try_pattern<const LEN: usize, const SUM: usize>(
     image: &BitMatrix,
     seed: Point,
     range: i32,
-    pattern: &[u16; LEN],
+    pattern: &[PatternType; LEN],
     nb_center_layers: u32,
     compact: bool,
 ) -> Option<BullseyeMatch> {
@@ -97,7 +99,7 @@ pub struct BullseyeCandidate {
 /// Instead of a strict per-module tolerance check, this compares the sums of each pair of
 /// neighbouring bars (which are robust against a binarizer that biases black vs. white widths),
 /// like zxing-cpp's `IsAztecCenterPattern`.
-fn is_aztec_center_pattern(view: &[u16; 9]) -> bool {
+fn is_aztec_center_pattern(view: &[PatternType; 9]) -> bool {
     let inner = &view[1..8];
     let mut m = inner[0] as i32 + inner[1] as i32;
     let mut mx = m;
@@ -157,8 +159,8 @@ fn check_symmetric_aztec_center_pattern(
         return 0;
     }
 
-    let mut view = [0u16; 9];
-    view[4] = (center_fwd + center_bwd - 1) as u16;
+    let mut view = [0 as PatternType; 9];
+    view[4] = (center_fwd + center_bwd - 1) as PatternType;
     let mut used = view[4] as i32;
     for i in 1..=4 {
         let f = step_to_next_edge(image, &mut fwd, d, range - used);
@@ -171,8 +173,8 @@ fn check_symmetric_aztec_center_pattern(
             return 0;
         }
         used += b;
-        view[4 + i] = f as u16;
-        view[4 - i] = b as u16;
+        view[4 + i] = f as PatternType;
+        view[4 - i] = b as PatternType;
     }
 
     if !is_aztec_center_pattern(&view) {
@@ -224,13 +226,13 @@ pub fn find_bullseye_candidates(image: &BitMatrix) -> Vec<BullseyeCandidate> {
     let skip = (height / 2 / 100).clamp(1, 5);
     let margin = 1;
 
-    let mut runs: Vec<u16> = Vec::with_capacity(width as usize / 2);
+    let mut runs: Vec<PatternType> = Vec::with_capacity(width as usize / 2);
     let mut y = margin;
     while y < height - margin {
         // run lengths, always starting with a (possibly empty) white run
         runs.clear();
         let mut color = false;
-        let mut count: u16 = 0;
+        let mut count: PatternType = 0;
         for x in 0..width {
             let c = image.get(x, y);
             if c != color {
@@ -249,9 +251,9 @@ pub fn find_bullseye_candidates(image: &BitMatrix) -> Vec<BullseyeCandidate> {
             continue;
         }
         let mut i = 2;
-        let mut x0: u32 = runs[0] as u32 + runs[1] as u32;
+        let mut x0: u32 = runs[0] + runs[1];
         while i + 8 <= runs.len() {
-            let mut view = [0u16; 9];
+            let mut view = [0 as PatternType; 9];
             view.copy_from_slice(&runs[i - 1..i + 8]);
             if is_aztec_center_pattern(&view) {
                 let pattern_width: i32 = runs[i..i + 7].iter().map(|&v| v as i32).sum();
@@ -276,7 +278,7 @@ pub fn find_bullseye_candidates(image: &BitMatrix) -> Vec<BullseyeCandidate> {
                     res.push(c);
                 }
             }
-            x0 += runs[i] as u32 + runs[i + 1] as u32;
+            x0 += runs[i] + runs[i + 1];
             i += 2;
         }
 

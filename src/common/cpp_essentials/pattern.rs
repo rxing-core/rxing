@@ -8,7 +8,7 @@ use crate::{
     common::{BitArray, BitMatrix, Result},
 };
 
-pub type PatternType = u16;
+pub type PatternType = u32;
 pub type Pattern<const N: usize> = [PatternType; N];
 
 fn BarAndSpaceSum<
@@ -156,13 +156,14 @@ impl<'a> PatternView<'a> {
     pub fn begin(&self) -> Option<PatternType> {
         Some(*self.data.get(self.start)?)
     }
-    pub fn end(&self) -> Option<PatternType> {
+    /// Number of runs in the underlying row (one past the last valid index).
+    pub fn end(&self) -> usize {
         // if self.start + self.count < self.data.len() {
         //     Some(self.data[self.start + self.count])
         // } else {
         //     None
         // }
-        Some(self.data.len() as PatternType)
+        self.data.len()
     }
 
     // int sum(int n = 0) const { return std::accumulate(_data, _data + (n == 0 ? _size : n), 0); }
@@ -229,12 +230,12 @@ impl<'a> PatternView<'a> {
 
     pub fn has_quiet_zone_before(&self, scale: f32, acceptIfAtFirstBar: Option<bool>) -> bool {
         (acceptIfAtFirstBar.unwrap_or(false) && self.isAtLastBar())
-            || Into::<f32>::into(self.data[self.count]) >= Into::<f32>::into(self.sum(None)) * scale
+            || (self.data[self.count] as f32) >= (self.sum(None) as f32) * scale
     }
 
     pub fn hasQuietZoneAfter(&self, scale: f32, acceptIfAtLastBar: Option<bool>) -> bool {
         (acceptIfAtLastBar.unwrap_or(true) && self.isAtLastBar())
-            || Into::<f32>::into(self.data[self.count]) >= Into::<f32>::into(self.sum(None)) * scale
+            || (self.data[self.count] as f32) >= (self.sum(None) as f32) * scale
     }
 
     pub fn subView(&self, offset: usize, size: Option<usize>) -> PatternView<'a> {
@@ -540,11 +541,11 @@ pub fn IsPattern<const E2E: bool, const LEN: usize, const SUM: usize, const SPAR
     }
 
     let width = view.sum(Some(LEN));
-    if SUM > LEN && Into::<usize>::into(width) < SUM {
+    if SUM > LEN && (width as usize) < SUM {
         return 0.0;
     }
 
-    let module_size: f32 = (Into::<f32>::into(width)) / (SUM as f32);
+    let module_size: f32 = (width as f32) / (SUM as f32);
     if module_size < min_module_size {
         return 0.0;
     }
@@ -562,9 +563,7 @@ pub fn IsPattern<const E2E: bool, const LEN: usize, const SUM: usize, const SPAR
     let threshold = module_size_ref * (0.5 + (E2E as u8) as f32 * 0.25) + 0.5;
 
     for x in 0..LEN {
-        if (Into::<f32>::into(view[x]) - Into::<f32>::into(pattern[x]) * module_size_ref).abs()
-            > threshold
-        {
+        if ((view[x] as f32) - (pattern[x] as f32) * module_size_ref).abs() > threshold {
             return 0.0;
         }
     }
@@ -581,7 +580,7 @@ pub fn IsRightGuard<const N: usize, const SUM: usize, const IS_SPARCE: bool>(
     let spaceInPixel = if view.isAtLastBar() {
         None
     } else {
-        Some(view.end().unwrap().into())
+        Some(view.end() as f32)
     };
 
     const E2E: bool = false;
@@ -611,7 +610,10 @@ pub fn FindLeftGuardBy<const LEN: usize, Pred: Fn(&PatternView, Option<f32>) -> 
     if window.isAtFirstBar() && isGuard(&window, Some(f32::MAX)) {
         return Ok(window);
     }
-    let end = Into::<usize>::into(view.end().ok_or(Exceptions::INDEX_OUT_OF_BOUNDS)?) - minSize;
+    let end = view
+        .end()
+        .checked_sub(minSize)
+        .ok_or(Exceptions::ILLEGAL_STATE)?;
     while (window.start + window.current) < end {
         let prev = window.try_get_index(PREV_IDX).map(|v| v as f32);
         if isGuard(&window, prev) {
@@ -632,9 +634,8 @@ pub fn FindLeftGuard<'a, const LEN: usize, const SUM: usize, const IS_SPARCE: bo
 ) -> Result<PatternView<'a>> {
     FindLeftGuardBy::<LEN, _>(view, std::cmp::max(minSize, LEN), |window, spaceInPixel| {
         // perform a fast plausability test for 1:1:3:1:1 pattern
-        // dbg!(window[2], 2 as PatternType * std::cmp::max(window[0], window[4]));
         // dbg!(window[2] < std::cmp::max(window[1], window[3]));
-        if window[2] < 2 as PatternType * std::cmp::max(window[0], window[4])
+        if (window[2] as u64) < 2 * std::cmp::max(window[0], window[4]) as u64
             || window[2] < std::cmp::max(window[1], window[3])
         {
             return false;
@@ -653,12 +654,12 @@ pub fn FindLeftGuard<'a, const LEN: usize, const SUM: usize, const IS_SPARCE: bo
 pub fn NormalizedE2EPattern<const LEN: usize, const LEN_MINUS_2: usize, const SUM: usize>(
     view: &PatternView,
 ) -> [PatternType; LEN_MINUS_2] {
-    let moduleSize: f32 = Into::<f32>::into(view.sum(Some(LEN))) / SUM as f32;
+    let moduleSize: f32 = (view.sum(Some(LEN)) as f32) / SUM as f32;
 
     let mut e2e = [PatternType::default(); LEN_MINUS_2];
 
     for i in 0..LEN_MINUS_2 {
-        let v: f32 = (Into::<f32>::into(view[i]) + Into::<f32>::into(view[i + 1])) / moduleSize;
+        let v: f32 = ((view[i] as f32) + (view[i + 1] as f32)) / moduleSize;
         e2e[i] = (v + 0.5) as PatternType;
     }
 
@@ -668,16 +669,16 @@ pub fn NormalizedE2EPattern<const LEN: usize, const LEN_MINUS_2: usize, const SU
 pub fn NormalizedPattern<const LEN: usize, const SUM: usize>(
     view: &PatternView,
 ) -> Result<[PatternType; LEN]> {
-    let moduleSize: f32 = (Into::<usize>::into(view.sum(Some(LEN))) / SUM) as f32;
+    let moduleSize: f32 = ((view.sum(Some(LEN)) as usize) / SUM) as f32;
     let mut err = SUM as isize;
     let mut is = [PatternType::default(); LEN];
     let mut rs = [0.0; LEN];
     for i in 0..LEN {
         // for (int i = 0; i < LEN; i++) {
-        let v: f32 = Into::<f32>::into(view[i]) / moduleSize;
+        let v: f32 = (view[i] as f32) / moduleSize;
         is[i] = (v + 0.5) as PatternType;
-        rs[i] = v - Into::<f32>::into(is[i]);
-        err -= Into::<usize>::into(is[i]) as isize;
+        rs[i] = v - (is[i] as f32);
+        err -= (is[i] as usize) as isize;
     }
 
     if err.abs() > 1 {
@@ -872,7 +873,7 @@ mod tests {
         let mut p_row = PatternRow::default();
         GetPatternRow(
             &[
-                0_u16, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1,
+                0_u32, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1,
             ],
             &mut p_row,
         );
@@ -881,10 +882,10 @@ mod tests {
 
         assert_eq!(pv.data(), p_row.0.as_slice());
 
-        assert_eq!(pv[0], 1_u16);
-        assert_eq!(pv[1], 1_u16);
-        assert_eq!(pv[4], 2_u16);
-        assert_eq!(pv[7], 6_u16);
+        assert_eq!(pv[0], 1_u32);
+        assert_eq!(pv[1], 1_u32);
+        assert_eq!(pv[4], 2_u32);
+        assert_eq!(pv[7], 6_u32);
 
         assert_eq!(pv.index(), 0);
         assert!(pv.shift(1));

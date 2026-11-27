@@ -209,7 +209,7 @@ pub trait RowReader {
      */
     fn OneToFourBitPattern<const LEN: usize, const SUM: usize>(view: &PatternView) -> Option<u32> {
         // TODO: make sure none of the elements in the normalized pattern exceeds 4
-        ToInt(&NormalizedPattern::<LEN, SUM>(view).ok()?.map(|x| x as u32))
+        ToInt(&NormalizedPattern::<LEN, SUM>(view).ok()?)
         //  ToInt(NormalizedPattern::<LEN, SUM>(view).unwrap_or_default()).unwrap_or(-1)
     }
 

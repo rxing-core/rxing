@@ -161,8 +161,8 @@ fn CheckForClock(rowNumber: u32, view: &mut PatternView) -> Option<Clock> {
     }
 
     clock.rowNumber = rowNumber;
-    clock.xStart = view.pixelsInFront() as u32;
-    clock.xStop = view.pixelsTillEnd() as u32;
+    clock.xStart = view.pixelsInFront();
+    clock.xStop = view.pixelsTillEnd();
 
     Some(clock)
 }
@@ -235,7 +235,7 @@ impl RowReader for DXFilmEdgeReader<'_> {
         let xStart = next.pixelsInFront();
 
         // Only consider data tracks that are next to a clock track
-        let Some(clock) = dxState.findClock(xStart as u32, rowNumber) else {
+        let Some(clock) = dxState.findClock(xStart, rowNumber) else {
             return Err(Exceptions::NOT_FOUND);
         };
 
@@ -339,14 +339,14 @@ impl RowReader for DXFilmEdgeReader<'_> {
         let xStop = next.pixelsTillEnd();
 
         // The found data track must end near the clock track
-        if !clock.isCloseToStop(xStop as u32, rowNumber) {
+        if !clock.isCloseToStop(xStop, rowNumber) {
             return Err(Exceptions::NOT_FOUND);
         }
 
         // Update the clock coordinates with the latest corresponding data track
         // This may improve signal detection for next row iterations
-        clock.xStart = xStart as u32;
-        clock.xStop = xStop as u32;
+        clock.xStart = xStart;
+        clock.xStop = xStop;
 
         let mut result = RXingResult::new(
             &txt,

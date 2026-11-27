@@ -893,3 +893,114 @@ fn issue_106_datamatrix_oversize() {
         );
     }
 }
+
+/// <https://github.com/rxing-core/rxing/issues/135>
+///
+/// Row run counts, run lengths and row widths must not be truncated to 16 bits.
+#[cfg(feature = "qrcode")]
+mod issue_135_wide_rows {
+    use rxing::common::BitMatrix;
+    use rxing::common::cpp_essentials::pattern::{GetPatternRowTP, PatternRow};
+    use rxing::qrcode::cpp_port::detector::FindFinderPatterns;
+    use rxing::{
+        BinaryBitmap, Luma8LuminanceSource, MultiFormatReader, Reader, common::HybridBinarizer,
+    };
+
+    const MODULE: u32 = 8;
+    const HEIGHT: u32 = 90;
+
+    /// A matrix with `prefix` columns of one-pixel stripes (if `striped`) or white, followed by
+    /// a single QR finder pattern of 7 modules at `x = prefix`, then a white quiet zone.
+    fn finder_behind(prefix: u32, striped: bool) -> BitMatrix {
+        let width = prefix + 7 * MODULE + 400;
+        let mut m = BitMatrix::new(width, HEIGHT).unwrap();
+        if striped {
+            for y in 0..HEIGHT {
+                for x in (1..prefix.saturating_sub(MODULE)).step_by(2) {
+                    m.set(x, y);
+                }
+            }
+        }
+        let top = 10;
+        for my in 0..7u32 {
+            for mx in 0..7u32 {
+                let ring = mx.min(my).min(6 - mx).min(6 - my);
+                if ring != 1 {
+                    for dy in 0..MODULE {
+                        for dx in 0..MODULE {
+                            m.set(prefix + mx * MODULE + dx, top + my * MODULE + dy);
+                        }
+                    }
+                }
+            }
+        }
+        m
+    }
+
+    fn assert_finds_finder(m: &BitMatrix, prefix: u32) {
+        let found = FindFinderPatterns(m, true, 1);
+        let expected_x = (prefix + 7 * MODULE / 2) as f32;
+        assert!(
+            found
+                .iter()
+                .any(|p| (p.p.x - expected_x).abs() < MODULE as f32),
+            "finder pattern at x={expected_x} not found, got {:?}",
+            found.iter().map(|p| p.p).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn row_with_65537_runs_does_not_panic() {
+        let mut m = BitMatrix::new(65535, 16).unwrap();
+        for y in 0..16 {
+            for x in (0..65535).step_by(2) {
+                m.set(x, y);
+            }
+        }
+        let _ = FindFinderPatterns(&m, true, 1);
+    }
+
+    #[test]
+    fn reader_on_65535_wide_stripes_does_not_panic() {
+        let (w, h) = (65535u32, 16u32);
+        let luma: Vec<u8> = (0..w * h)
+            .map(|i| if (i % w) % 2 == 0 { 0 } else { 255 })
+            .collect();
+        let source = Luma8LuminanceSource::new(luma, w, h).unwrap();
+        let mut bitmap = BinaryBitmap::new(HybridBinarizer::new(source));
+        assert!(MultiFormatReader::default().decode(&mut bitmap).is_err());
+    }
+
+    #[test]
+    fn scan_reaches_pattern_beyond_65536_runs() {
+        assert_finds_finder(&finder_behind(100_000, true), 100_000);
+    }
+
+    #[test]
+    fn run_longer_than_u16_is_counted_exactly() {
+        let m = BitMatrix::new(70_000, 1).unwrap();
+        let mut row = PatternRow::default();
+        GetPatternRowTP(&m, 0, &mut row, false);
+        assert_eq!(
+            row.into_iter().map(|r| r as u64).collect::<Vec<_>>(),
+            vec![70_000]
+        );
+    }
+
+    #[test]
+    fn finder_behind_wide_margin_is_found() {
+        assert_finds_finder(&finder_behind(4_464, false), 4_464);
+        assert_finds_finder(&finder_behind(70_000, false), 70_000);
+    }
+
+    #[test]
+    fn row_width_sum_is_not_truncated() {
+        let mut m = BitMatrix::new(80_500, 1).unwrap();
+        for x in (0..80_500).step_by(2) {
+            m.set(x, 0);
+        }
+        let mut row = PatternRow::default();
+        GetPatternRowTP(&m, 0, &mut row, false);
+        assert_eq!(row.sum() as u64, 80_500);
+    }
+}
