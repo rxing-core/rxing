@@ -176,7 +176,10 @@ fn spiral(radius: i32) -> impl Iterator<Item = (i32, i32)> {
 pub fn GenerateFinderPatternSets(patterns: &mut FinderPatterns) -> FinderPatternSets {
     patterns.sort_by_key(|b| std::cmp::Reverse(b.size)); // descending: larger patterns first (less likely to be noise)
 
-    let mut sets: Vec<(f64, FinderPatternSet)> = Vec::new();
+    const MAX_FINDER_PATTERN_SETS: usize = 256;
+
+    let mut sets: Vec<(f64, FinderPatternSet)> = Vec::with_capacity(2 * MAX_FINDER_PATTERN_SETS);
+    let mut score_limit = f64::INFINITY;
     let squaredDistance = |a: ConcentricPattern, b: ConcentricPattern| {
         // The scaling of the distance by the b/a size ratio is a very coarse compensation for the shortening effect of
         // the camera projection on slanted symbols. The fact that the size of the finder pattern is proportional to the
@@ -301,12 +304,16 @@ pub fn GenerateFinderPatternSets(patterns: &mut FinderPatterns) -> FinderPattern
                     continue;
                 }
 
+                // first order approximation of plausibility (lower = more plausible)
+                let score = distAB + distBC + (distAB - distBC).abs();
+                if score >= score_limit {
+                    continue;
+                }
+
                 if ConcentricPattern::cross(*c - *b, *a - *b) < 0.0 {
                     std::mem::swap(&mut a, &mut c);
                 }
 
-                // first order approximation of plausibility (lower = more plausible)
-                let score = distAB + distBC + (distAB - distBC).abs();
                 sets.push((
                     score,
                     FinderPatternSet {
@@ -315,12 +322,21 @@ pub fn GenerateFinderPatternSets(patterns: &mut FinderPatterns) -> FinderPattern
                         tr: *c,
                     },
                 ));
+
+                if sets.len() == 2 * MAX_FINDER_PATTERN_SETS {
+                    sets.select_nth_unstable_by(MAX_FINDER_PATTERN_SETS - 1, |a, b| {
+                        a.0.total_cmp(&b.0)
+                    });
+                    sets.truncate(MAX_FINDER_PATTERN_SETS);
+                    score_limit = sets[MAX_FINDER_PATTERN_SETS - 1].0;
+                }
             }
         }
     }
 
     // ascending score: most plausible sets first
     sets.sort_by(|a, b| a.0.total_cmp(&b.0));
+    sets.truncate(MAX_FINDER_PATTERN_SETS);
 
     sets.into_iter().map(|(_, s)| s).collect()
 }
