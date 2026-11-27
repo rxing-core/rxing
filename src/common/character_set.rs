@@ -489,7 +489,11 @@ impl CharacterSet {
         unimplemented!()
     }
 
-    pub fn decode(&self, _input: &[u8]) -> Result<String> {
-        unimplemented!()
+    pub fn decode(&self, input: &[u8]) -> Result<String> {
+        // Without the charset tables the only honest decode is a lossy
+        // UTF-8 passthrough: ASCII payloads (the QR byte mode's default
+        // and the common case) decode exactly; other charsets get
+        // replacement characters instead of a panic.
+        Ok(String::from_utf8_lossy(input).into_owned())
     }
 }
