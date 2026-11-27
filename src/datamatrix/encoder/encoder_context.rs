@@ -149,14 +149,14 @@ impl<'a> EncoderContext<'_> {
         &self.symbolInfo
     }
 
-    pub fn updateSymbolInfo(&mut self) {
-        self.updateSymbolInfoWithLength(self.getCodewordCount());
+    pub fn updateSymbolInfo(&mut self) -> Result<()> {
+        self.updateSymbolInfoWithLength(self.getCodewordCount())
     }
 
     /// Update symbol info with the length
     ///
-    /// This function can panic
-    pub fn updateSymbolInfoWithLength(&mut self, len: usize) {
+    /// Returns an error if no symbol can hold `len` data codewords.
+    pub fn updateSymbolInfoWithLength(&mut self, len: usize) -> Result<()> {
         if self.symbolInfo.is_none()
             || len > self.symbolInfo.as_ref().unwrap().getDataCapacity() as usize
         {
@@ -168,11 +168,11 @@ impl<'a> EncoderContext<'_> {
                         &self.minSize,
                         &self.maxSize,
                         true,
-                    )
-                    .unwrap()
-                    .unwrap(),
+                    )?
+                    .ok_or(Exceptions::ILLEGAL_STATE)?,
             );
         }
+        Ok(())
     }
 
     pub fn resetSymbolInfo(&mut self) {

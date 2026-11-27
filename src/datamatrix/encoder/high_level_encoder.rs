@@ -229,7 +229,7 @@ pub fn encodeHighLevelWithDimensionForceC40WithSymbolInfoLookup(
         }
     }
     let len = context.getCodewordCount();
-    context.updateSymbolInfo();
+    context.updateSymbolInfo()?;
     let capacity = context
         .getSymbolInfo()
         .ok_or(Exceptions::ILLEGAL_STATE)?
