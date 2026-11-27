@@ -26,7 +26,7 @@ pub(crate) const MAX_GF_SIZE: usize = 4096;
 /// `u16` is sufficient for all predefined fields (max size 4096) and halves the footprint of the tables versus `i32`
 type InternalTableType = u16;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub struct GenericGF {
     // Values are always in `0..size` (size <= MAX_GF_SIZE = 4096), so `u16` holds them with room
     // to spare while halving the footprint of these fixed-size tables versus `i32`.
@@ -38,6 +38,17 @@ pub struct GenericGF {
     primitive: i32,
     generatorBase: i32,
 }
+
+impl PartialEq for GenericGF {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
+            || (self.size == other.size
+                && self.primitive == other.primitive
+                && self.generatorBase == other.generatorBase)
+    }
+}
+
+impl Eq for GenericGF {}
 
 impl GenericGF {
     /**
