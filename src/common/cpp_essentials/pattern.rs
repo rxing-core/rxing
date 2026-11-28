@@ -216,7 +216,7 @@ impl<'a> PatternView<'a> {
         self.start == (self.current + 1) /*return _data == _base + 1;*/
     }
     pub fn isAtLastBar(&self) -> bool {
-        self.current == self.start + self.count - 1 /*return _data + _size == _end - 1;*/
+        self.start + self.current + self.count + 1 == self.data.len() /*return _data + _size == _end - 1;*/
     }
     pub fn isValidWithN(&self, n: usize) -> bool {
         !self.data.is_empty()
@@ -577,10 +577,13 @@ pub fn IsRightGuard<const N: usize, const SUM: usize, const IS_SPARCE: bool>(
     minQuietZone: f32,
     moduleSizeRef: f32,
 ) -> bool {
+    // the width of the space right after the pattern (`*view.end()` in the C++ original)
     let spaceInPixel = if view.isAtLastBar() {
         None
     } else {
-        Some(view.end() as f32)
+        view.data
+            .get(view.start + view.current + view.count)
+            .map(|&v| v as f32)
     };
 
     const E2E: bool = false;
@@ -803,7 +806,7 @@ pub fn GetPatternRow<T: Into<PatternType> + Copy + Default + From<T>>(
 mod tests {
     use crate::common::cpp_essentials::PatternType;
 
-    use super::{GetPatternRow, PatternRow, PatternView};
+    use super::{FixedPattern, GetPatternRow, IsRightGuard, PatternRow, PatternView};
     const N: usize = 33;
 
     #[test]
@@ -892,5 +895,32 @@ mod tests {
         assert_eq!(pv.index(), 1);
         assert!(pv.skipPair());
         assert_eq!(pv.index(), 3);
+    }
+
+    /// View of the 3 runs starting at row index 1 (the first bar).
+    fn stop_view(row: &PatternRow) -> PatternView<'_> {
+        PatternView::new(row).subView(0, Some(3))
+    }
+
+    const STOP: FixedPattern<3, 3> = FixedPattern::new([1, 1, 1]);
+
+    #[test]
+    fn right_guard_uses_space_after_pattern() {
+        // module size 5, min quiet zone 0.5 modules => the space after must be >= 1.5 px
+        let narrow = PatternRow::new(vec![10, 5, 5, 5, 1, 5, 20]);
+        assert!(!IsRightGuard(&stop_view(&narrow), &STOP, 0.5, 0.0));
+
+        let wide = PatternRow::new(vec![10, 5, 5, 5, 3, 5, 20]);
+        assert!(IsRightGuard(&stop_view(&wide), &STOP, 0.5, 0.0));
+    }
+
+    #[test]
+    fn right_guard_at_last_bar_needs_no_quiet_zone() {
+        // the pattern ends at the last bar of the row: the space after it is the image border
+        let row = PatternRow::new(vec![10, 5, 5, 5, 1]);
+        let view = stop_view(&row);
+        assert!(view.isAtLastBar());
+        assert!(IsRightGuard(&view, &STOP, 0.5, 0.0));
+        assert!(!stop_view(&PatternRow::new(vec![10, 5, 5, 5, 1, 5, 20])).isAtLastBar());
     }
 }
