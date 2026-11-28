@@ -89,6 +89,10 @@ impl<'a> MultiFinderPatternFinder<'_> {
                 possibleCenters.push(*fp);
             }
         }
+        if possibleCenters.len() > FinderPatternFinder::MAX_SELECTABLE_CENTERS {
+            possibleCenters.sort_by_key(|fp| std::cmp::Reverse(fp.getCount()));
+            possibleCenters.truncate(FinderPatternFinder::MAX_SELECTABLE_CENTERS);
+        }
         let size = possibleCenters.len();
 
         if size < 3 {

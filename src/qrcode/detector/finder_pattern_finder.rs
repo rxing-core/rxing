@@ -44,6 +44,7 @@ impl<'a> FinderPatternFinder<'_> {
     pub const CENTER_QUORUM: usize = 2;
     pub const MIN_SKIP: u32 = 3; // 1 pixel/module times 3 modules/center
     pub const MAX_MODULES: u32 = 97; // support up to version 20 for mobile clients
+    pub const MAX_SELECTABLE_CENTERS: usize = 64;
 
     /**
      * <p>Creates a finder that will search the image for three finder patterns.</p>
@@ -692,6 +693,12 @@ impl<'a> FinderPatternFinder<'_> {
 
         self.possibleCenters
             .retain(|fp| fp.getCount() >= Self::CENTER_QUORUM);
+
+        if self.possibleCenters.len() > Self::MAX_SELECTABLE_CENTERS {
+            self.possibleCenters
+                .sort_by_key(|fp| std::cmp::Reverse(fp.getCount()));
+            self.possibleCenters.truncate(Self::MAX_SELECTABLE_CENTERS);
+        }
 
         self.possibleCenters.sort_unstable_by(|x, y| {
             x.getEstimatedModuleSize()
