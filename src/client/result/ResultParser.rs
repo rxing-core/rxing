@@ -468,18 +468,19 @@ mod tests {
             crate::BarcodeFormat::EAN_13,
         );
         let p_res = parse_result_with_parser(&result, |v| {
-            Some(ParsedClientResult::Other(OtherParsedResult::new(Box::new(
+            Some(ParsedClientResult::Other(OtherParsedResult::new(
                 v.getRawBytes().to_vec(),
-            ))))
+            )))
         })
         .unwrap();
 
-        assert_eq!(p_res.getDisplayRXingResult(), "Any { .. }");
+        assert_eq!(p_res.getDisplayRXingResult(), "[12, 23, 54, 23]");
 
         if let ParsedClientResult::Other(opr) = p_res {
             if let Some(d) = opr.get_data().downcast_ref::<Vec<u8>>() {
                 assert_eq!(d, result.getRawBytes());
             } else {
+                dbg!(opr.get_data().downcast_ref::<Vec<u8>>());
                 panic!("did not get vec<u8>");
             }
         } else {

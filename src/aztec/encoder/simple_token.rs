@@ -33,7 +33,7 @@ impl SimpleToken {
         }
     }
 
-    pub fn appendTo(&self, bit_array: &mut BitArray, _text: &[u8]) -> Result<()> {
+    pub fn appendTo(&self, bit_array: &mut BitArray) -> Result<()> {
         bit_array.appendBits(self.value as BitFieldBaseType, self.bit_count as usize)
     }
 

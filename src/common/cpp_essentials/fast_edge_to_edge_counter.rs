@@ -15,7 +15,6 @@ pub struct FastEdgeToEdgeCounter<'a> {
     stride: isize,      // = 0;
     stepsToBorder: i32, // = 0;
     //arr: BitArray,
-    _arr: isize,
     under_arry: &'a BitMatrix, //,Vec<bool>
 }
 
@@ -49,8 +48,7 @@ impl FastEdgeToEdgeCounter<'_> {
             p,
             stride,
             stepsToBorder,
-            _arr: cur.p().y as isize * stride, //cur.img().getRow(cur.p().y as u32),
-            under_arry: cur.img(),             //.into(),
+            under_arry: cur.img(), //.into(),
         }
     }
 

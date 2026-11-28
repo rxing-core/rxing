@@ -618,8 +618,6 @@ pub struct Edge {
     characterLength: u32,
     previous: Option<Arc<Edge>>,
     cachedTotalSize: u32,
-    _encoders: ECIEncoderSet,
-    _stringToEncode: Vec<String>,
 }
 impl Edge {
     #[allow(clippy::too_many_arguments)]
@@ -645,7 +643,6 @@ impl Edge {
             charsetEncoderIndex: nci,
             characterLength,
             previous: previous.clone(),
-            _stringToEncode: stringToEncode.clone(),
             cachedTotalSize: {
                 let mut size = if previous.is_some() {
                     previous.as_ref()?.cachedTotalSize
@@ -688,7 +685,6 @@ impl Edge {
                 }
                 size
             },
-            _encoders: encoders,
         })
     }
 }

@@ -32,7 +32,7 @@ impl TokenType {
     pub fn appendTo(&self, bit_array: &mut BitArray, text: &[u8]) -> Result<()> {
         // let token = &self.tokens[self.current_pointer];
         match self {
-            TokenType::Simple(a) => a.appendTo(bit_array, text),
+            TokenType::Simple(a) => a.appendTo(bit_array),
             TokenType::BinaryShift(a) => a.appendTo(bit_array, text),
             TokenType::Empty => Err(Exceptions::illegal_state_with(
                 "cannot appendTo on Empty final item",

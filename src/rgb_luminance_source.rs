@@ -101,7 +101,6 @@ impl LuminanceSource for RGBLuminanceSource {
     }
 
     fn get_luma8_point(&self, x: usize, y: usize) -> u8 {
-        let _width = self.get_width();
         let row_offset = (y) * self.dataWidth;
         let col_offset = x;
 

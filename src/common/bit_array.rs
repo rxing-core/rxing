@@ -449,15 +449,15 @@ impl BitArray {
 
 impl fmt::Display for BitArray {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut _str = String::with_capacity(self.size + (self.size / 8) + 1);
+        let mut str = String::with_capacity(self.size + (self.size / 8) + 1);
         for i in 0..self.size {
             //for (int i = 0; i < size; i++) {
             if (i & 0x07) == 0 {
-                _str.push(' ');
+                str.push(' ');
             }
-            _str.push_str(if self.get(i) { "X" } else { "." });
+            str.push_str(if self.get(i) { "X" } else { "." });
         }
-        write!(f, "{_str}")
+        write!(f, "{str}")
     }
 }
 

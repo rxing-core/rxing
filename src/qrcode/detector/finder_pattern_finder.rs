@@ -545,7 +545,6 @@ impl<'a> FinderPatternFinder<'_> {
         stateCount: &[u32],
         i: u32,
         j: u32,
-        _pureBarcode: bool,
     ) -> bool {
         self.handlePossibleCenter(stateCount, i, j)
     }

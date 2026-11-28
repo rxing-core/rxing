@@ -140,7 +140,6 @@ impl<'a> PatternView<'a> {
         start: usize,
         size: usize,
         base: usize,
-        _end: usize,
     ) -> PatternView<'a> {
         PatternView {
             data: &bars.0,
